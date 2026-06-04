@@ -1,23 +1,31 @@
-# Synth Benchmark — Metrics Specification (Final)
+# Synth Benchmark — Metrics Specification (Final, v2)
 
 This is the finalized scoring spec for the 76-question bank. It defines every
 metric with its formula, a worked example grounded in real questions, what it
 measures, and why it matters — plus the governance layer that makes the set safe
-to optimise against:
+to optimise against.
 
+**What changed in v2** (from external review of three industry sources):
+- **Significance testing** added to the reliability layer — point-gap "wins" must
+  now clear a permutation test, not just sit outside the error bars. [Hebbia]
+- **Anchored examples** required on every judgment-tier criterion (3 good / 3 bad)
+  and scored as independent calls, to improve judge consistency. [Hebbia]
+- **Named judgment dimensions** (Accuracy, Citation Rate, Groundedness, Relevance,
+  Structure, etc.) adopted as the standard sub-criteria for judgment-tier checks. [MSFT]
+- **Audit-trail / provenance** requirement added to governance — a reviewable,
+  tamper-evident record per scored task. [FAGI]
+
+Governance principles carried from v1:
 - **Counter-metric pairing (BFF test).** Every success metric is paired with the
   metric that stops it being gamed. No success metric is reported or optimised alone.
-- **Safety guardrail.** A hard rule that voids the efficiency metrics whenever the
-  quality counter-metric breaches threshold — speed can never buy itself by
-  degrading correctness.
-- **Acted-on vs Reported.** Each metric is tagged for whether you *optimise* it or
-  merely *display* it, so reported-only numbers never become vanity targets.
-- **Leading vs Lagging.** Each metric is tagged for responsiveness, so you know
-  which give fast iteration signal and which only confirm outcomes after volume.
+- **Safety guardrail.** Efficiency metrics are voided whenever the quality
+  counter-metric breaches threshold.
+- **Acted-on vs Reported.** Each metric is tagged for whether you optimise it or
+  merely display it.
+- **Leading vs Lagging.** Each metric is tagged for responsiveness.
 
 Metrics apply in four layers — per-check, set-level, task-level, aggregate +
-deployment — routed by the `gradability` column (Deterministic -> per-check +
-set-level; Hybrid -> both + judge; Judgment -> jury).
+deployment — routed by the `gradability` column.
 
 ---
 
@@ -35,6 +43,7 @@ set-level; Hybrid -> both + judge; Judgment -> jury).
 | Naive accuracy | context | Class-balanced accuracy | reported | lagging |
 | Class-balanced accuracy | success | Naive (spread check) | acted-on | lagging |
 | Mean +/- SE | reliability | (variance guard) | reported | lagging |
+| **Significance test (permutation)** | reliability | (gates point-gap claims) | acted-on (gate) | lagging |
 | Brier score | quality | ECE (direction) | acted-on | lagging |
 | ECE | quality | Brier (magnitude) | acted-on | lagging |
 | **Autonomy rate** | success | **Bad-auto-post rate** [GUARDRAIL] | acted-on | lagging |
@@ -61,8 +70,22 @@ with `theta` a hard ceiling (suggested start: theta = 1%). The same gate applies
 to Time saved.
 
 **Rule: neither efficiency metric is ever reported, quoted, or optimised without
-its bad-auto-post rate displayed beside it.** Speed that breaches the quality
-ceiling does not count as speed.
+its bad-auto-post rate displayed beside it.**
+
+---
+
+## Provenance / audit-trail requirement (governance, not a metric)
+
+Because Synth touches statutory work (GST, TDS, ROC filings) and client books,
+every scored task must retain a **reviewable, tamper-evident record**: the input,
+the output, the per-check scores, the rubric reason for each score, the model +
+orchestration version (e.g. Codex / +Fabric / +Hermes), and any human override.
+A second-line reviewer must be able to walk from "wrong entry" back to the exact
+input, retrieved document, score, and reason. [FAGI]
+
+This is the *principle* of a reviewable model-risk record; the specific US
+regulations cited by the source (SR 11-7, SEC 17a-4, CFPB) do not apply to Synth's
+Indian context, but the reviewable-record requirement does.
 
 ---
 
@@ -78,6 +101,7 @@ ceiling does not count as speed.
 | p_i in [0,1] | stated confidence on item i |
 | o_i in {0,1} | actual correctness of item i |
 | theta | bad-auto-post ceiling (guardrail threshold) |
+| alpha | significance level (0.05) |
 
 ---
 
@@ -88,14 +112,12 @@ ceiling does not count as speed.
 `s_i = 1 if predicted == gold else 0`
 **Example (TXN-003):** gold TDS section `194J`; answer `194J` -> 1, `194C` -> 0.
 **Counter-metric:** none needed — a single binary fact, not gameable.
-**Why it matters:** cheapest, least ambiguous check; covers sections, heads, flags.
 
 ### 2. Numeric within tolerance · acted-on · leading
 **Measures:** a numeric answer is within an allowed band of gold.
 `s_i = 1 if |predicted - gold| <= tau else 0`
 **Example (RECO-001 balance, tau=0.01):** 99,325.00 -> pass; 98,705.00 (delta=620) -> fail.
-**Counter-metric:** the tolerance tau itself guards false precision — tight for tax, looser for estimates.
-**Why it matters:** encodes "how close is correct" as a rule, not a whim.
+**Counter-metric:** the tolerance tau itself guards false precision.
 
 ---
 
@@ -109,23 +131,17 @@ P = TP / (TP + FP)        R = TP / (TP + FN)
 ```
 **Example (RECO-001 flawed):** found 3 of 4 gold items, missed 1, fabricated 1 ->
 TP=3, FP=1, FN=1  =>  P = R = 0.75 (matches the grader output).
-**Why the pairing is mandatory:** recall alone is gamed by flagging everything
-(perfect recall, terrible precision); precision alone is gamed by flagging only
-the one sure thing. **Neither is ever reported without the other.** Recall catches
-misses; precision catches fabrications.
+**Why the pairing is mandatory:** recall alone is gamed by flagging everything;
+precision alone by flagging only the one sure thing. Neither is reported alone.
 
 ### 5 & 6. F1 / F-beta · acted-on · leading
 ```
 F1    = 2PR / (P + R)
 Fbeta = (1 + beta^2) * P * R / (beta^2 * P + R)
 ```
-**Example (DD-RF, recall=1.0, precision=0.6):** F1 = 0.75;
-recall-weighted F2 = 5*0.6*1.0 / (4*0.6 + 1.0) = 0.88.
-**Role:** F-beta is the single number that resolves the precision/recall pair, with
-beta encoding which error is worse.
-**Why it matters:** beta=2 (recall-weighted) for DD red flags — a missed flag can
-sink a deal; beta=0.5 (precision-weighted) for CFO auto-posting — a wrong posted
-entry is the expensive error.
+**Example (DD-RF, recall=1.0, precision=0.6):** F1 = 0.75; F2 = 0.88.
+**Why it matters:** beta=2 (recall-weighted) for DD red flags; beta=0.5
+(precision-weighted) for CFO auto-posting.
 
 ---
 
@@ -136,52 +152,91 @@ entry is the expensive error.
 PC = 0                                   if any dealbreaker check fails
 PC = sum(w_i * s_i) / sum(w_i)           otherwise
 ```
-**Example A (RECO-001 flawed):** phantom item -> `contradiction` dealbreaker fails
--> PC = 0% despite 3 correct items.
+**Example A (RECO-001 flawed):** phantom item -> dealbreaker fails -> PC = 0%.
 **Example B (RECO-001 near-miss):** balance right, all 4 items found, one category
 mislabeled, dealbreaker intact -> PC = 6/7 = 85.7%.
-**Counter-metric:** All-Pass — PC is the lenient view, read against the strict view.
-**Why it matters:** rewards partial work but zeroes confidently-wrong answers.
 
 ### 8. All-Pass · reported · paired with Partial Credit
 ```
 AllPass = 1 only if every check passes, else 0
 ```
 **Example (RECO-001 near-miss):** one mislabel -> AllPass = 0 though PC = 85.7%.
-**Role:** the strict counter to PC. The **gap between PC and All-Pass** measures how
-much human cleanup remains.
-**Why reported-only:** optimising All-Pass directly drives over-conservatism;
-optimise PC, watch All-Pass.
+The **gap between PC and All-Pass** measures human cleanup remaining.
+
+### Judgment-tier rules (Hybrid + Judgment rows)
+
+Judgment-tier checks are graded by a 3-model LLM jury. Two requirements make them
+reliable:
+
+**(a) Named sub-criteria.** Judgment checks use these standard dimensions rather
+than a generic "judgment" label [MSFT]:
+
+| Dimension | What it scores | Most relevant to |
+|---|---|---|
+| Accuracy | factually correct vs ground truth | all |
+| Groundedness | supported by referenced sources, no hallucination | DD findings, MIS |
+| Citation Rate | claims properly reference their source | DD report rows |
+| Relevance | directly answers the task, stays on scope | client emails, commentary |
+| Depth | explores beyond surface level | QoE, risk commentary |
+| Clarity | concise, readable | client-facing emails |
+| Structure | logical flow, key insights prioritised | DD deck, MIS pack |
+| Recency | time-sensitive info is current, dated | financial-performance tasks |
+
+For a DD report row (DD-RPT-*), Groundedness and Citation Rate are the load-bearing
+dimensions — "is this finding backed by a document in the data room."
+
+**(b) Anchored examples.** Every judgment criterion ships with **3 positive and 3
+negative example answers** that anchor what "good" and "bad" look like, and each
+criterion is scored as an **independent LLM call** (so scoring one criterion does
+not bias another). This materially improves judge consistency. [Hebbia]
 
 ---
 
-## Layer 4a — Aggregate metrics
+## Layer 4a — Aggregate + reliability metrics
 
 ### 9 & 10. Naive vs Class-balanced accuracy · paired
 ```
 Naive = (1/N) * sum(s_j)
 CBA   = (1/K) * sum_over_categories(acc_k)
 ```
-**Example (TXN 8/10=0.80, Payroll 1/3=0.33):** Naive = 9/13 = 0.692;
-CBA = (0.80 + 0.33)/2 = 0.567.
-**Role:** Naive is the context/counter number — a big CBA-vs-Naive gap warns that a
-few large categories are masking weak small ones.
-**Acted-on:** CBA (headline). **Reported:** Naive (spread check).
-**Why it matters:** category counts are uneven (TXN 10, Payroll 3); CBA gives each
-category an equal vote. Use per service line in later parts.
+**Example (TXN 8/10=0.80, Payroll 1/3=0.33):** Naive = 0.692; CBA = 0.567.
+**Acted-on:** CBA (headline). **Reported:** Naive (spread check). Use per service
+line in later parts.
 
-### 11. Multi-run mean +/- standard error · reported · reliability
+### 11. Multi-run reliability: mean +/- SE AND significance testing · reliability
+
+**Step 1 — mean +/- SE (reported).** Run each setting n times:
 ```
 mean = (1/n) * sum(x_r)
 sd   = sqrt( sum((x_r - mean)^2) / (n - 1) )
 SE   = sd / sqrt(n)
 ```
-**Example (n=3: 0.82, 0.78, 0.86):** mean = 0.82, sd = 0.04, SE = 0.023 ->
-report **0.82 +/- 0.023**.
-**Role:** the variance guard on every other metric — a 2-point orchestration gap
-inside the error bars is noise.
-**Why it matters:** judgment-tier scores vary run to run; never compare point
-estimates without the bars.
+**Example (n=3: 0.82, 0.78, 0.86):** mean = 0.82, sd = 0.04, SE = 0.023.
+
+**Step 2 — significance test (acted-on gate).** Before declaring one config better
+than another (e.g. orchestration A vs B, or +Hermes vs not), run a **two-sided
+permutation test at alpha = 0.05 over 10,000 iterations** on the pooled
+per-question scores. Report **significant win / tie / significant loss**, never a
+raw point gap. [Hebbia]
+
+```
+observed_diff = mean(A) - mean(B)
+repeat 10,000x: shuffle labels A/B across pooled scores, recompute diff
+p = fraction of shuffled |diff| >= |observed_diff|
+significant if p < alpha
+```
+
+**Example.** A scores 0.82, B scores 0.80 across N=50, 3 runs each.
+- permutation p = 0.31  ->  **TIE** (the 2-point gap is noise; do NOT claim a win).
+- permutation p = 0.02  ->  **significant win for A**.
+
+**Notes:** for larger samples consider Mann-Whitney U (two-sided); when running
+many comparisons (models x criteria x questions), consider False Discovery Rate
+control (Benjamini-Hochberg) before claiming a proportion of true wins. [Hebbia]
+
+**Why it matters:** this is the rigorous form of "vibes need standard errors" —
+it stops the orchestration ladder (Codex / +Fabric / +Hermes) from chasing gains
+that are within noise. A 2-point gain that fails the permutation test is not a gain.
 
 ---
 
@@ -193,52 +248,40 @@ Brier = (1/N) * sum( (p_i - o_i)^2 )      (0 = perfect, lower better)
 ```
 **Example (TXN-005, p=[.99,.95,.90,.70,.55], o=[1,1,0,1,0]):** Brier = 1.2051/5 = 0.241.
 **Counter-metric:** read with ECE — Brier gives magnitude, ECE gives direction.
-**Why it matters:** precondition for the >95% auto-post rule to be safe.
 
 ### 13. Expected Calibration Error (ECE) · acted-on · lagging
 ```
 ECE = sum_over_bins( (N_b / N) * |acc(b) - conf(b)| )
 ```
 **Example (bin [0.90,1.0]: 0.99 correct, 0.95 correct, 0.90 wrong):**
-conf = 0.947, acc = 0.667, gap = 0.28 -> overconfident; the >95% threshold is unsafe as set.
-**Plain-language wrapper (for non-technical stakeholders):** *"when the agent says
-it's sure, how often is it actually right."*
-**Why it matters:** tells you exactly where to set the auto-post threshold.
+conf = 0.947, acc = 0.667, gap = 0.28 -> overconfident; the >95% auto-post threshold is unsafe as set.
+**Plain-language wrapper:** *"when the agent says it's sure, how often is it actually right."*
 
 ### 14. Bad-auto-post rate · acted-on · lagging · **the safety counter-metric**
 ```
 BadAutoPost = #{posted AND wrong} / #{posted}
 ```
-**Example:** 80 auto-posted, 3 wrong -> 3/80 = 3.75% (above a 1% ceiling -> autonomy
-voided by the guardrail).
-**Counter-metric:** Over-queue rate — stops the agent dodging this by queuing everything.
-**Why it matters:** the number a client actually cares about; it gates autonomy and
-time-saved via the guardrail.
+**Example:** 80 auto-posted, 3 wrong -> 3.75% (above a 1% ceiling -> autonomy voided).
+**Counter-metric:** Over-queue rate.
 
 ### 15. Over-queue rate · reported · lagging
 ```
 OverQueue = #{queued AND actually fine} / #{queued}
 ```
-**Example:** 20 queued, 8 were fine -> 8/20 = 40% wasted human review.
-**Role:** the counter to bad-auto-post — together they catch both unsafe
-over-automation and useless over-caution.
-**Why it matters:** an agent with 0% bad-auto-post but 90% over-queue saves no human
-time; this keeps the safety push honest.
+**Example:** 20 queued, 8 were fine -> 40% wasted human review.
 
 ### 16. Autonomy rate · acted-on · lagging · [GUARDRAILED]
 ```
 Autonomy = #{no human touch AND correct} / N      (reported only if BadAutoPost <= theta)
 ```
-**Example:** 50/76 = 65.8% — **valid only if** bad-auto-post <= theta; else reported as unsafe.
-**Why it matters:** the headline deployment number, meaningless without its gate.
+**Example:** 50/76 = 65.8% — valid only if bad-auto-post <= theta.
 
 ### 17. Time saved / ROI · acted-on · lagging · [GUARDRAILED]
 ```
-TimeSaved = sum(expert_time on auto tasks) - sum(agent_time on auto tasks)   (counted only if BadAutoPost <= theta)
+TimeSaved = sum(expert_time on auto tasks) - sum(agent_time on auto tasks)   (only if BadAutoPost <= theta)
 ```
-**Example:** 180 expert-min - 12 agent-min = **168 min saved** (only if safe).
+**Example:** 180 expert-min - 12 agent-min = 168 min saved (only if safe).
 **Caveat:** `expert_time_mins` is placeholder until real Kayess/Eldaas times land.
-**Why it matters:** the business case, in the same units as the 242.78 hours.
 
 ---
 
@@ -249,12 +292,14 @@ per-check (exact / numeric)
       |
       +-- set-level: Precision <-> Recall -> F-beta
       v
-task: Partial Credit <-> All-Pass        (gap = cleanup remaining)
-      |  x 3 runs -> mean +/- SE
+task: Partial Credit <-> All-Pass     (judgment via 3-model jury, named dims, anchored examples)
+      |  x 3 runs -> mean +/- SE -> permutation significance test (win / tie / loss)
       v
 category acc -> Class-Balanced Acc   (x service line x BI band x tool)
       v
 deployment: Brier <-> ECE | Autonomy [GR] <-> Bad-auto-post <-> Over-queue | Time saved [GR]
+      |
+      +-- every scored task logged to the provenance / audit trail
 ```
 
 ### Metric-to-tier routing
@@ -262,34 +307,79 @@ deployment: Brier <-> ECE | Autonomy [GR] <-> Bad-auto-post <-> Over-queue | Tim
 | Gradability | Per-check | Set-level | Task | Deployment |
 |---|---|---|---|---|
 | Deterministic | exact, numeric | P <-> R, F-beta | PC + All-Pass (code) | calibration, autonomy[GR], time[GR] |
-| Hybrid | exact, numeric (spine) | P <-> R (spine) | PC: spine code, judgment via jury | autonomy[GR], time[GR] |
-| Judgment | — | — | PC + All-Pass via 3-model jury | autonomy[GR], time[GR] |
+| Hybrid | exact, numeric (spine) | P <-> R (spine) | PC: spine code, judgment via jury (named dims + anchors) | autonomy[GR], time[GR] |
+| Judgment | — | — | PC + All-Pass via 3-model jury (named dims + anchors) | autonomy[GR], time[GR] |
 
 ---
 
 ## How to use this set (the four-test summary)
 
-- **Actionable:** optimise the *acted-on* metrics; the *reported* ones (All-Pass,
-  Naive accuracy, Over-queue, Mean+/-SE) are context, never targets — this keeps
-  them from becoming vanity numbers.
-- **Responsive:** per-check and set-level metrics are *leading* — run them on a
-  small dev subset for fast iteration. Deployment metrics are *lagging* by nature;
-  do not wait on them to iterate, but measure them carefully over real volume
-  (accuracy of the safety signal beats speed of it).
-- **BFF / counter-metrics:** every success metric names its pair. The critical one
-  is the guardrail: **Autonomy and Time-saved are void when Bad-auto-post breaches theta.**
-- **Clear & comparable:** Brier/ECE ship with the plain-language wrapper for
-  non-technical readers; every aggregate is comparative (over time, across the
-  three axes, across the orchestration ladder).
+- **Actionable:** optimise the *acted-on* metrics; the *reported* ones are context,
+  never targets.
+- **Responsive:** per-check and set-level metrics are *leading* — run on a small
+  dev subset for fast iteration. Deployment metrics are *lagging*; measure over
+  real volume (accuracy of the safety signal beats speed of it).
+- **BFF / counter-metrics:** every success metric names its pair; the critical one
+  is the guardrail (Autonomy/Time void when Bad-auto-post breaches theta).
+- **Significance before claims:** never report an orchestration "win" without the
+  permutation test. A point gap inside noise is a tie.
+- **Judge discipline:** judgment checks use the named dimensions, ship 3-good/3-bad
+  anchors, and are scored as independent calls.
+- **Clear & comparable:** Brier/ECE ship with the plain-language wrapper; every
+  aggregate is comparative.
 
 ---
 
 ## Caveats
 
 - **Weights and thresholds are business calls.** beta, the severity weights w_i,
-  the auto-post confidence cutoff, and theta encode *your* risk tolerance — set
-  them explicitly, do not default to equal weight.
+  the auto-post confidence cutoff, and theta encode *your* risk tolerance.
 - **`expert_time_mins` is placeholder.** Metric 17 is illustrative until real
   measured times replace the estimates.
 - **Judge calibration precedes judge use.** Validate the jury against human grades
   (percent agreement / Cohen's kappa) before trusting it on Judgment-tier tasks.
+  Hebbia validated their automated scores against former hedge-fund/PE analysts and
+  found strong alignment; do the equivalent with your BIs. [Hebbia]
+
+---
+
+## References
+
+1. **[FAB]** Bigeard, Krishnan, Wu, et al. *Finance Agent Benchmark: Benchmarking
+   LLMs on Real-world Financial Research Tasks.* Vals AI / Stanford, 2025.
+   arXiv:2508.00828 — https://arxiv.org/abs/2508.00828 .
+   Live v2 leaderboard & methodology (dealbreaker-gated Partial Credit, All-Pass,
+   3-judge jury, 3-run aggregation): https://www.vals.ai/benchmarks/fabv2 .
+   Supports: Partial Credit, All-Pass, jury, multi-run aggregation, class-balanced accuracy.
+
+2. **[Hebbia]** Skinner, Li, Ramanathan (Hebbia Research & Product). *Who Evaluates
+   the Evaluator: Reaching Autonomous Consensus on Agentic Outputs.* 2025.
+   Related public benchmark: https://www.hebbia.com/blog/which-model-will-give-me-the-edge .
+   Supports: permutation significance testing, independent per-criterion scoring,
+   3-good/3-bad anchored examples, human-expert validation of automated scores.
+   Builds on foundational LLM-as-judge work cataloged therein — G-Eval, GPTScore,
+   BooookScore, and MT-Bench / Chatbot Arena.
+
+3. **[MSFT]** Microsoft 365 Copilot Blog. *Finance Agent Benchmark: evaluating and
+   improving AI for Finance.* May 2026.
+   https://techcommunity.microsoft.com/blog/microsoft365copilotblog/finance-agent-benchmark-evaluating-and-improving-ai-for-finance/4522978 .
+   Code: https://github.com/microsoft/FinanceBenchmark .
+   Supports: named judgment dimensions (Accuracy, Citation Rate, Clarity, Depth,
+   Groundedness, Recency, Relevance, Structure), equal-weighted task-area
+   composite, LLM-as-judge against rubric assertions, latency-constrained eval,
+   MCP tool-parity setup. Closest published peer to Synth's CFO (AP/AR) domain.
+
+4. **[FAGI]** Future AGI. *Best Fintech AI Evaluation Platforms in 2026.* May 2026.
+   https://futureagi.com/blog/best-fintech-ai-evaluation-platforms-2026/ .
+   Supports: the provenance / audit-trail principle only (reviewable, tamper-evident
+   per-decision record with score, reason, model version, and override). Note: this
+   is a vendor comparison piece; only the audit-trail principle is adopted, and the
+   US-specific regulations it cites do not apply to Synth's Indian context.
+
+### Further domain references (context, not directly cited above)
+
+5. DualEntry. *Accounting AI Benchmark 2026* — bookkeeping/accounting model accuracy.
+   https://www.dualentry.com/accounting-ai-benchmark . Closest to Synth's CFO domain.
+6. FinGAIA: *A Chinese Benchmark for AI Agents in Real-World Financial Domain.*
+   arXiv:2507.17186 — https://arxiv.org/abs/2507.17186 . Multi-step, multi-tool agent
+   failure taxonomy.
