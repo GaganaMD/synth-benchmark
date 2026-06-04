@@ -1,6 +1,6 @@
 # Synth Benchmark — Metrics Specification (Final, v2)
 
-This is the finalized scoring spec for the 76-question bank. It defines every
+This is the finalized draft for scoring spec for the 76-question bank. It defines every
 metric with its formula, a worked example grounded in real questions, what it
 measures, and why it matters — plus the governance layer that makes the set safe
 to optimise against.
