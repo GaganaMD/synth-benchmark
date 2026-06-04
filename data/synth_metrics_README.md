@@ -1,15 +1,9 @@
 # Synth Benchmark — How We Score the Agent (Metrics Guide)
 
-This guide explains, in plain English, every metric we use to grade the agent on
-the 76-question bank. Every metric below is shown using a **real question from our
-question bank** — we state the actual question, what a correct answer looks like,
+Every metric below is shown using a **real question from our
+question bank** . We state the actual question, what a correct answer looks like,
 walk through exactly how the score is worked out, and give a one-line reason the
 metric exists.
-
-**The big idea in one sentence:** we don't trust a single "accuracy" number — we
-score each answer from several angles, pair every "good" score with a watchdog
-that stops it being gamed, and never call something an improvement unless the
-numbers prove it isn't just luck.
 
 ---
 
