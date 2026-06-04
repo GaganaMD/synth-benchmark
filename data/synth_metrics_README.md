@@ -1,385 +1,376 @@
-# Synth Benchmark — Metrics Specification (Final, v2)
+# Synth Benchmark — How We Score the Agent (Metrics Guide)
 
-This is the finalized draft for scoring spec for the 76-question bank. It defines every
-metric with its formula, a worked example grounded in real questions, what it
-measures, and why it matters — plus the governance layer that makes the set safe
-to optimise against.
+This guide explains, in plain English, every metric we use to grade the agent on
+the 76-question bank. For each one you get: a real example prompt, a step-by-step
+walk-through of how the score is worked out, and a one-line reason it's there.
 
-**What changed in v2** (from external review of three industry sources):
-- **Significance testing** added to the reliability layer — point-gap "wins" must
-  now clear a permutation test, not just sit outside the error bars. [Hebbia]
-- **Anchored examples** required on every judgment-tier criterion (3 good / 3 bad)
-  and scored as independent calls, to improve judge consistency. [Hebbia]
-- **Named judgment dimensions** (Accuracy, Citation Rate, Groundedness, Relevance,
-  Structure, etc.) adopted as the standard sub-criteria for judgment-tier checks. [MSFT]
-- **Audit-trail / provenance** requirement added to governance — a reviewable,
-  tamper-evident record per scored task. [FAGI]
-
-Governance principles carried from v1:
-- **Counter-metric pairing (BFF test).** Every success metric is paired with the
-  metric that stops it being gamed. No success metric is reported or optimised alone.
-- **Safety guardrail.** Efficiency metrics are voided whenever the quality
-  counter-metric breaches threshold.
-- **Acted-on vs Reported.** Each metric is tagged for whether you optimise it or
-  merely display it.
-- **Leading vs Lagging.** Each metric is tagged for responsiveness.
-
-Metrics apply in four layers — per-check, set-level, task-level, aggregate +
-deployment — routed by the `gradability` column.
+The big idea in one sentence: **we don't trust a single "accuracy" number — we
+score each answer from several angles, pair every "good" score with a check that
+stops it being gamed, and never call something an improvement unless the numbers
+prove it isn't just luck.**
 
 ---
 
-## TL;DR governance table
+## The metrics at a glance
 
-| Metric | Role | Counter-metric | Acted-on / Reported | Leading / Lagging |
-|---|---|---|---|---|
-| Exact match | success | (per-check, n/a) | acted-on | leading |
-| Numeric tolerance | success | (per-check, n/a) | acted-on | leading |
-| Precision | quality | **Recall** | acted-on | leading |
-| Recall | success | **Precision** | acted-on | leading |
-| F1 / F-beta | composite | (balances the pair) | acted-on | leading |
-| Partial Credit | success (lenient) | **All-Pass** | acted-on | mixed |
-| All-Pass | quality (strict) | Partial Credit | reported | mixed |
-| Naive accuracy | context | Class-balanced accuracy | reported | lagging |
-| Class-balanced accuracy | success | Naive (spread check) | acted-on | lagging |
-| Mean +/- SE | reliability | (variance guard) | reported | lagging |
-| **Significance test (permutation)** | reliability | (gates point-gap claims) | acted-on (gate) | lagging |
-| Brier score | quality | ECE (direction) | acted-on | lagging |
-| ECE | quality | Brier (magnitude) | acted-on | lagging |
-| **Autonomy rate** | success | **Bad-auto-post rate** [GUARDRAIL] | acted-on | lagging |
-| **Time saved** | success | **Bad-auto-post rate** [GUARDRAIL] | acted-on | lagging |
-| Bad-auto-post rate | quality (safety) | Over-queue rate | acted-on | lagging |
-| Over-queue rate | quality | Bad-auto-post rate | reported | lagging |
+We track 17 metrics, grouped by what they look at. Read this list first; the
+detailed walk-throughs follow.
 
-[GUARDRAIL] = governed by the safety guardrail below.
+**A. Scoring one fact in an answer**
+1. Exact match — is this word/label/category exactly right?
+2. Numeric tolerance — is this number close enough to correct?
 
----
+**B. Scoring a list in an answer (red flags, reconciling items, mismatches)**
+3. Recall — of all the things it *should* have found, how many did it catch?
+4. Precision — of all the things it flagged, how many were actually real?
+5. F1 / F-beta — one balanced score combining the two (and you can tilt it toward whichever error is costlier).
 
-## The safety guardrail (non-negotiable)
+**C. Scoring a whole task**
+6. Partial Credit — a fair part-marks score, but zeroed if it makes a fatal error.
+7. All-Pass — the strict version: full marks only if *everything* is right.
 
-The efficiency metrics — **Autonomy rate** and **Time saved** — are maximised by
-auto-posting everything and queuing nothing, which silently pushes wrong entries
-into client books. To prevent this, they are **conditional metrics**:
+**D. Scoring the agent across many tasks**
+8. Naive accuracy — simple overall pass rate.
+9. Class-balanced accuracy — pass rate that gives every task type an equal vote.
+10. Mean +/- error bar — the average score and how much it wobbles between runs.
+11. Significance test — proof that one version is *really* better, not just lucky.
 
-```
-Autonomy* = Autonomy rate      if BadAutoPost <= theta
-          = void ("unsafe")    if BadAutoPost >  theta
-```
+**E. Scoring whether it's safe to deploy**
+12. Brier score — when it says "I'm 90% sure," is it actually right that often?
+13. Calibration error (ECE) — same idea, summarised as one "how overconfident is it" number.
+14. Bad-auto-post rate — how often a wrong entry slips through unreviewed (the safety alarm).
+15. Over-queue rate — how often it needlessly asks a human to check something fine.
+16. Autonomy rate — how much work it finishes correctly with no human touch.
+17. Time saved — how many human-hours it actually frees up.
 
-with `theta` a hard ceiling (suggested start: theta = 1%). The same gate applies
-to Time saved.
-
-**Rule: neither efficiency metric is ever reported, quoted, or optimised without
-its bad-auto-post rate displayed beside it.**
+**Two rules that sit on top of all of these:**
+- **Every "good" metric is paired with a "watchdog" metric** so it can't be gamed.
+- **The deployment metrics (autonomy, time saved) are switched off if the safety
+  alarm goes off** — speed never counts if it's posting wrong entries.
 
 ---
 
-## Provenance / audit-trail requirement (governance, not a metric)
+## A. Scoring one fact in an answer
 
-Because Synth touches statutory work (GST, TDS, ROC filings) and client books,
-every scored task must retain a **reviewable, tamper-evident record**: the input,
-the output, the per-check scores, the rubric reason for each score, the model +
-orchestration version (e.g. Codex / +Fabric / +Hermes), and any human override.
-A second-line reviewer must be able to walk from "wrong entry" back to the exact
-input, retrieved document, score, and reason. [FAGI]
+### 1. Exact match
 
-This is the *principle* of a reviewable model-risk record; the specific US
-regulations cited by the source (SR 11-7, SEC 17a-4, CFPB) do not apply to Synth's
-Indian context, but the reviewable-record requirement does.
+**Example prompt (TXN-003):** *"For this professional-fee bill, what TDS section applies?"*
+Correct answer: `194J`.
 
----
+**How it's scored:** the agent's answer is compared letter-for-letter to the
+correct one. Says `194J` -> scores 1 (right). Says `194C` -> scores 0 (wrong).
+There's no in-between — a section number is either correct or it isn't.
 
-## Notation
+**Why we use it:** the simplest, most objective check. For things like tax
+sections, account names, and yes/no flags, "close" doesn't exist — so we just
+check exact correctness.
 
-| Symbol | Meaning |
-|---|---|
-| TP, FP, FN | true / false positives, false negatives (set matching) |
-| N | items / predictions / tasks in scope |
-| K | categories (K = 14) |
-| w_i | severity weight of check i |
-| s_i in {0,1} | pass/fail of check i |
-| p_i in [0,1] | stated confidence on item i |
-| o_i in {0,1} | actual correctness of item i |
-| theta | bad-auto-post ceiling (guardrail threshold) |
-| alpha | significance level (0.05) |
+### 2. Numeric tolerance
 
----
+**Example prompt (RECO-001):** *"What's the reconciled bank balance?"*
+Correct answer: 99,325.00.
 
-## Layer 1 — Per-check metrics (Deterministic tier)
+**How it's scored:** we allow a tiny wiggle room (here, 1 paisa) for rounding.
+If the agent's number is within that band, it passes; if not, it fails.
+- Answer 99,325.00 -> difference is 0 -> **pass**.
+- Answer 98,705.00 -> difference is 620 -> **fail**.
 
-### 1. Exact match  · acted-on · leading
-**Measures:** a categorical/string answer equals gold.
-`s_i = 1 if predicted == gold else 0`
-**Example (TXN-003):** gold TDS section `194J`; answer `194J` -> 1, `194C` -> 0.
-**Counter-metric:** none needed — a single binary fact, not gameable.
-
-### 2. Numeric within tolerance · acted-on · leading
-**Measures:** a numeric answer is within an allowed band of gold.
-`s_i = 1 if |predicted - gold| <= tau else 0`
-**Example (RECO-001 balance, tau=0.01):** 99,325.00 -> pass; 98,705.00 (delta=620) -> fail.
-**Counter-metric:** the tolerance tau itself guards false precision.
+**Why we use it:** financial figures round differently in different tools, so a
+flat "exact match" would unfairly fail near-perfect answers. The tolerance says
+exactly how close counts as correct — tight for tax, looser for estimates.
 
 ---
 
-## Layer 2 — Set-level metrics (list-valued answers)
+## B. Scoring a list in an answer
 
-Items matched to gold on a key (e.g. amount + side): matched = TP, extra = FP, missed = FN.
+Many tasks ask for a *list* — every red flag, every reconciling item, every
+mismatch. To score a list we line up the agent's items against the correct
+("gold") list and label each: a **match** (found a real one), an **extra** (made
+one up), or a **miss** (left a real one out).
 
-### 3 & 4. Precision and Recall · acted-on · leading · **paired with each other**
-```
-P = TP / (TP + FP)        R = TP / (TP + FN)
-```
-**Example (RECO-001 flawed):** found 3 of 4 gold items, missed 1, fabricated 1 ->
-TP=3, FP=1, FN=1  =>  P = R = 0.75 (matches the grader output).
-**Why the pairing is mandatory:** recall alone is gamed by flagging everything;
-precision alone by flagging only the one sure thing. Neither is reported alone.
+We'll use one running example for all three metrics:
 
-### 5 & 6. F1 / F-beta · acted-on · leading
-```
-F1    = 2PR / (P + R)
-Fbeta = (1 + beta^2) * P * R / (beta^2 * P + R)
-```
-**Example (DD-RF, recall=1.0, precision=0.6):** F1 = 0.75; F2 = 0.88.
-**Why it matters:** beta=2 (recall-weighted) for DD red flags; beta=0.5
-(precision-weighted) for CFO auto-posting.
+**Example prompt (RECO-001):** *"List all the reconciling items."*
+The correct list has **4** items. The agent returns a list where it **found 3**
+real items, **missed 1** (the interest credit), and **invented 1** that doesn't
+exist (a phantom vendor debit). So: matches = 3, extras = 1, misses = 1.
 
----
+### 3. Recall — did it catch everything?
 
-## Layer 3 — Task-level scoring
+**How it's scored:** of the 4 items it should have found, it caught 3.
+`Recall = found / should-have-found = 3 / 4 = 0.75` (75%).
 
-### 7. Dealbreaker-gated Partial Credit · acted-on · paired with All-Pass
-```
-PC = 0                                   if any dealbreaker check fails
-PC = sum(w_i * s_i) / sum(w_i)           otherwise
-```
-**Example A (RECO-001 flawed):** phantom item -> dealbreaker fails -> PC = 0%.
-**Example B (RECO-001 near-miss):** balance right, all 4 items found, one category
-mislabeled, dealbreaker intact -> PC = 6/7 = 85.7%.
+**Why we use it:** this is the "did anything slip through?" score. In due
+diligence, a missed red flag can sink a deal — so we need to know how much the
+agent overlooks.
 
-### 8. All-Pass · reported · paired with Partial Credit
-```
-AllPass = 1 only if every check passes, else 0
-```
-**Example (RECO-001 near-miss):** one mislabel -> AllPass = 0 though PC = 85.7%.
-The **gap between PC and All-Pass** measures human cleanup remaining.
+### 4. Precision — was everything it flagged real?
 
-### Judgment-tier rules (Hybrid + Judgment rows)
+**How it's scored:** it flagged 4 items in total, but only 3 were real.
+`Precision = real / total-flagged = 3 / 4 = 0.75` (75%).
 
-Judgment-tier checks are graded by a 3-model LLM jury. Two requirements make them
-reliable:
+**Why we use it:** this is the "did it cry wolf?" score. An agent that flags
+everything would never miss anything (great recall) but would drown the team in
+false alarms (terrible precision). Precision keeps it honest.
 
-**(a) Named sub-criteria.** Judgment checks use these standard dimensions rather
-than a generic "judgment" label [MSFT]:
+### 5. F1 / F-beta — one balanced number
 
-| Dimension | What it scores | Most relevant to |
-|---|---|---|
-| Accuracy | factually correct vs ground truth | all |
-| Groundedness | supported by referenced sources, no hallucination | DD findings, MIS |
-| Citation Rate | claims properly reference their source | DD report rows |
-| Relevance | directly answers the task, stays on scope | client emails, commentary |
-| Depth | explores beyond surface level | QoE, risk commentary |
-| Clarity | concise, readable | client-facing emails |
-| Structure | logical flow, key insights prioritised | DD deck, MIS pack |
-| Recency | time-sensitive info is current, dated | financial-performance tasks |
+**How it's scored:** F1 blends precision and recall into a single score.
+`F1 = 2 x (P x R) / (P + R) = 2 x (0.75 x 0.75) / 1.5 = 0.75`.
+When one error is worse than the other, we tilt the blend with F-beta:
+- *DD red flags* — missing one is worse, so we weight recall more (beta = 2).
+  With recall 1.0 and precision 0.6, F1 = 0.75 but **F2 = 0.88** (forgives the
+  false alarms, rewards catching everything).
+- *CFO auto-posting* — a wrong posted entry is worse, so we weight precision more (beta = 0.5).
 
-For a DD report row (DD-RPT-*), Groundedness and Citation Rate are the load-bearing
-dimensions — "is this finding backed by a document in the data room."
-
-**(b) Anchored examples.** Every judgment criterion ships with **3 positive and 3
-negative example answers** that anchor what "good" and "bad" look like, and each
-criterion is scored as an **independent LLM call** (so scoring one criterion does
-not bias another). This materially improves judge consistency. [Hebbia]
+**Why we use it:** sometimes you want a single number to rank on, and F-beta lets
+that number reflect *which mistake actually costs you more* in that task.
 
 ---
 
-## Layer 4a — Aggregate + reliability metrics
+## C. Scoring a whole task
 
-### 9 & 10. Naive vs Class-balanced accuracy · paired
-```
-Naive = (1/N) * sum(s_j)
-CBA   = (1/K) * sum_over_categories(acc_k)
-```
-**Example (TXN 8/10=0.80, Payroll 1/3=0.33):** Naive = 0.692; CBA = 0.567.
-**Acted-on:** CBA (headline). **Reported:** Naive (spread check). Use per service
-line in later parts.
+### 6. Partial Credit (the main task score)
 
-### 11. Multi-run reliability: mean +/- SE AND significance testing · reliability
+**Example prompt (RECO-001):** the full reconciliation — balance + all items.
 
-**Step 1 — mean +/- SE (reported).** Run each setting n times:
-```
-mean = (1/n) * sum(x_r)
-sd   = sqrt( sum((x_r - mean)^2) / (n - 1) )
-SE   = sd / sqrt(n)
-```
-**Example (n=3: 0.82, 0.78, 0.86):** mean = 0.82, sd = 0.04, SE = 0.023.
+**How it's scored:** the task has several checks (the balance, each item, "no
+fabrications"). Partial Credit is the share of checks passed — **but** if the
+agent makes a *fatal* error (a "dealbreaker," like inventing an item or breaking
+the books), the whole score drops to 0 no matter what else it got right.
+- *Flawed answer:* invents a phantom item -> dealbreaker tripped -> **PC = 0%**,
+  even though 3 items were correct.
+- *Near-miss answer:* balance right, all 4 items found, just one mislabeled, no
+  fatal error -> 6 of 7 checks pass -> **PC = 86%**.
 
-**Step 2 — significance test (acted-on gate).** Before declaring one config better
-than another (e.g. orchestration A vs B, or +Hermes vs not), run a **two-sided
-permutation test at alpha = 0.05 over 10,000 iterations** on the pooled
-per-question scores. Report **significant win / tie / significant loss**, never a
-raw point gap. [Hebbia]
+**Why we use it:** all-or-nothing scoring is too harsh for multi-part finance
+work, but pure part-marks would reward a confident, dangerous wrong answer. This
+gives fair credit for partial work while still punishing the unforgivable mistakes.
 
-```
-observed_diff = mean(A) - mean(B)
-repeat 10,000x: shuffle labels A/B across pooled scores, recompute diff
-p = fraction of shuffled |diff| >= |observed_diff|
-significant if p < alpha
-```
+### 7. All-Pass (the strict score)
 
-**Example.** A scores 0.82, B scores 0.80 across N=50, 3 runs each.
-- permutation p = 0.31  ->  **TIE** (the 2-point gap is noise; do NOT claim a win).
-- permutation p = 0.02  ->  **significant win for A**.
+**How it's scored:** 100% only if *every single* check passes; otherwise 0%.
+The near-miss above (one mislabel) scores **0% on All-Pass** even though it got
+86% on Partial Credit.
 
-**Notes:** for larger samples consider Mann-Whitney U (two-sided); when running
-many comparisons (models x criteria x questions), consider False Discovery Rate
-control (Benjamini-Hochberg) before claiming a proportion of true wins. [Hebbia]
-
-**Why it matters:** this is the rigorous form of "vibes need standard errors" —
-it stops the orchestration ladder (Codex / +Fabric / +Hermes) from chasing gains
-that are within noise. A 2-point gain that fails the permutation test is not a gain.
+**Why we use it:** it answers a different question — "is this good enough to ship
+with zero edits?" The gap between Partial Credit and All-Pass tells you how much
+human cleanup is still needed.
 
 ---
 
-## Layer 4b — Deployment metrics (Synth-specific)
+## D. Scoring the agent across many tasks
 
-### 12. Brier score · acted-on · lagging · calibration
-```
-Brier = (1/N) * sum( (p_i - o_i)^2 )      (0 = perfect, lower better)
-```
-**Example (TXN-005, p=[.99,.95,.90,.70,.55], o=[1,1,0,1,0]):** Brier = 1.2051/5 = 0.241.
-**Counter-metric:** read with ECE — Brier gives magnitude, ECE gives direction.
+### 8. Naive accuracy — the simple average
 
-### 13. Expected Calibration Error (ECE) · acted-on · lagging
-```
-ECE = sum_over_bins( (N_b / N) * |acc(b) - conf(b)| )
-```
-**Example (bin [0.90,1.0]: 0.99 correct, 0.95 correct, 0.90 wrong):**
-conf = 0.947, acc = 0.667, gap = 0.28 -> overconfident; the >95% auto-post threshold is unsafe as set.
-**Plain-language wrapper:** *"when the agent says it's sure, how often is it actually right."*
+**How it's scored:** just the overall pass rate.
+Example: Transaction Processing passes 8 of 10, Payroll passes 1 of 3 ->
+`(8 + 1) / (10 + 3) = 9/13 = 69%`.
 
-### 14. Bad-auto-post rate · acted-on · lagging · **the safety counter-metric**
-```
-BadAutoPost = #{posted AND wrong} / #{posted}
-```
-**Example:** 80 auto-posted, 3 wrong -> 3.75% (above a 1% ceiling -> autonomy voided).
-**Counter-metric:** Over-queue rate.
+**Why we use it:** it's the easy headline number — but it's misleading on its own
+(see the next one), so we only *report* it, we don't optimise it.
 
-### 15. Over-queue rate · reported · lagging
-```
-OverQueue = #{queued AND actually fine} / #{queued}
-```
-**Example:** 20 queued, 8 were fine -> 40% wasted human review.
+### 9. Class-balanced accuracy — the fair average
 
-### 16. Autonomy rate · acted-on · lagging · [GUARDRAILED]
-```
-Autonomy = #{no human touch AND correct} / N      (reported only if BadAutoPost <= theta)
-```
-**Example:** 50/76 = 65.8% — valid only if bad-auto-post <= theta.
+**How it's scored:** average the pass rate *per category*, giving each category
+equal weight regardless of how many questions it has.
+Same example: `(0.80 for TXN + 0.33 for Payroll) / 2 = 57%`.
+Notice it's lower than the naive 69% — because the small, weak Payroll category
+now gets an equal say instead of being drowned out by the big TXN category.
 
-### 17. Time saved / ROI · acted-on · lagging · [GUARDRAILED]
-```
-TimeSaved = sum(expert_time on auto tasks) - sum(agent_time on auto tasks)   (only if BadAutoPost <= theta)
-```
-**Example:** 180 expert-min - 12 agent-min = 168 min saved (only if safe).
-**Caveat:** `expert_time_mins` is placeholder until real Kayess/Eldaas times land.
+**Why we use it:** our categories have very different sizes. Without this, a big
+easy category could hide a small category the agent is failing. This is our real
+headline number.
 
----
+### 10. Mean +/- error bar — the average and its wobble
 
-## How the layers compose
+**How it's scored:** run the same tasks a few times (the agent isn't perfectly
+consistent), then report the average and how much it varied.
+Example (3 runs: 0.82, 0.78, 0.86): average = 0.82, wobble (standard error) = 0.023.
+So we report **0.82 +/- 0.023**.
 
-```
-per-check (exact / numeric)
-      |
-      +-- set-level: Precision <-> Recall -> F-beta
-      v
-task: Partial Credit <-> All-Pass     (judgment via 3-model jury, named dims, anchored examples)
-      |  x 3 runs -> mean +/- SE -> permutation significance test (win / tie / loss)
-      v
-category acc -> Class-Balanced Acc   (x service line x BI band x tool)
-      v
-deployment: Brier <-> ECE | Autonomy [GR] <-> Bad-auto-post <-> Over-queue | Time saved [GR]
-      |
-      +-- every scored task logged to the provenance / audit trail
-```
+**Why we use it:** one run is like flipping a coin once. The error bar tells you
+how much to trust the number — and whether a difference between two versions is
+real or just run-to-run noise.
 
-### Metric-to-tier routing
+### 11. Significance test — is the improvement real or luck?
 
-| Gradability | Per-check | Set-level | Task | Deployment |
-|---|---|---|---|---|
-| Deterministic | exact, numeric | P <-> R, F-beta | PC + All-Pass (code) | calibration, autonomy[GR], time[GR] |
-| Hybrid | exact, numeric (spine) | P <-> R (spine) | PC: spine code, judgment via jury (named dims + anchors) | autonomy[GR], time[GR] |
-| Judgment | — | — | PC + All-Pass via 3-model jury (named dims + anchors) | autonomy[GR], time[GR] |
+**Example scenario:** Version A scores 0.82, Version B scores 0.80. Did A really
+win, or did it just get a lucky run?
+
+**How it's scored:** we run a permutation test. In plain terms: we shuffle the two
+versions' results together thousands of times to see how often a gap *this big*
+shows up by pure chance. If a gap this big almost never happens by chance
+(probability < 5%), we call it a real win; otherwise we call it a tie.
+- gap probability = 31% -> happens by chance often -> **TIE** (don't claim A won).
+- gap probability = 2% -> rarely happens by chance -> **A genuinely wins**.
+
+**Why we use it:** this stops us from chasing fake progress. When comparing the
+orchestration stack (e.g. Codex vs Codex+Hermes), a 2-point bump that fails this
+test is noise, not a reason to add a whole layer. As the source paper puts it,
+"vibes need standard errors." [Hebbia]
 
 ---
 
-## How to use this set (the four-test summary)
+## E. Scoring whether it's safe to deploy
 
-- **Actionable:** optimise the *acted-on* metrics; the *reported* ones are context,
-  never targets.
-- **Responsive:** per-check and set-level metrics are *leading* — run on a small
-  dev subset for fast iteration. Deployment metrics are *lagging*; measure over
-  real volume (accuracy of the safety signal beats speed of it).
-- **BFF / counter-metrics:** every success metric names its pair; the critical one
-  is the guardrail (Autonomy/Time void when Bad-auto-post breaches theta).
-- **Significance before claims:** never report an orchestration "win" without the
-  permutation test. A point gap inside noise is a tie.
-- **Judge discipline:** judgment checks use the named dimensions, ship 3-good/3-bad
-  anchors, and are scored as independent calls.
-- **Clear & comparable:** Brier/ECE ship with the plain-language wrapper; every
-  aggregate is comparative.
+These answer the real business question: *not "is the model smart?" but "can we
+let it touch a client's books?"*
+
+### 12. Brier score — is its confidence trustworthy?
+
+**Example prompt (TXN-005):** the agent auto-categorizes transactions and states a
+confidence for each, e.g. [99%, 95%, 90%, 70%, 55%]; actual correctness turned out
+to be [right, right, wrong, right, wrong].
+
+**How it's scored:** for each item we measure the gap between its stated
+confidence and what actually happened, square it, and average. Here that works out
+to **0.24** (lower is better; 0 is perfect). The 90%-confident item that was
+*wrong* hurts the score the most.
+
+**Why we use it:** our whole auto-post design rests on confidence ("post anything
+above 95%"). That's only safe if the agent's confidence is honest — Brier checks it.
+
+### 13. Calibration error (ECE) — how overconfident is it?
+
+**How it's scored:** group predictions by confidence level, then compare each
+group's *claimed* confidence to its *actual* hit rate.
+Example: in the "90%+ confident" group, it claimed ~95% but was actually right
+only 67% of the time -> a **28-point overconfidence gap**.
+
+**Why we use it:** it turns calibration into one actionable number. That 28-point
+gap is a direct warning: the ">95% = auto-post" threshold is unsafe as set, and
+should be raised.
+
+**Plain-language version:** *"when the agent says it's sure, how often is it actually right?"*
+
+### 14. Bad-auto-post rate — the safety alarm
+
+**How it's scored:** of everything the agent auto-posted (no human review), what
+fraction was wrong?
+Example: auto-posted 80 entries, 3 were wrong -> `3 / 80 = 3.75%`.
+
+**Why we use it:** this is the number a client actually cares about — how often a
+wrong entry reaches their books unseen. It has a hard ceiling (suggested 1%), and
+if it's breached, the agent's efficiency scores below are switched off.
+
+### 15. Over-queue rate — is it being lazy-safe?
+
+**How it's scored:** of everything it sent to a human to check, what fraction was
+actually fine and didn't need checking?
+Example: queued 20 items, 8 were fine -> `8 / 20 = 40%` wasted reviewer time.
+
+**Why we use it:** it's the watchdog for the safety alarm. An agent could keep its
+bad-auto-post rate at zero by sending *everything* to humans — which saves no time
+at all. This catches that dodge.
+
+### 16. Autonomy rate — how much can it handle alone?
+
+**How it's scored:** of all tasks, what fraction did it finish correctly with zero
+human involvement? Example: 50 of 76 -> `66%`.
+**Guardrail:** this only counts if the bad-auto-post rate is under the ceiling;
+otherwise it's reported as "unsafe," not as a score.
+
+**Why we use it:** it's the headline "how much work did we take off humans' plates"
+number — but it's meaningless (and dangerous) without the safety alarm beside it.
+
+### 17. Time saved — the actual payoff
+
+**How it's scored:** add up the human time the auto-handled tasks would have taken,
+subtract the agent's time. Example: 180 human-minutes of work done in 12 agent-
+minutes -> **168 minutes saved**. (Also gated by the safety alarm.)
+
+**Why we use it:** this is the business case, in the same hours-units as the real
+Kayess workload (e.g. the 242-hour data-entry pile). **Note:** the per-task human
+times are still estimates today, so this number is illustrative until real
+measured times are filled in.
 
 ---
 
-## Caveats
+## How a single answer flows through all of this
 
-- **Weights and thresholds are business calls.** beta, the severity weights w_i,
-  the auto-post confidence cutoff, and theta encode *your* risk tolerance.
-- **`expert_time_mins` is placeholder.** Metric 17 is illustrative until real
-  measured times replace the estimates.
-- **Judge calibration precedes judge use.** Validate the jury against human grades
-  (percent agreement / Cohen's kappa) before trusting it on Judgment-tier tasks.
-  Hebbia validated their automated scores against former hedge-fund/PE analysts and
-  found strong alignment; do the equivalent with your BIs. [Hebbia]
+```
+One answer
+   |
+   |-- score each fact:  Exact match / Numeric tolerance
+   |-- score each list:  Recall + Precision -> F-beta
+   v
+   task score:  Partial Credit  (+ strict All-Pass)
+   |
+   |  run it 3 times -> average +/- wobble -> significance test before claiming a win
+   v
+   roll up across tasks:  Class-balanced accuracy (per service line / BI band / tool)
+   v
+   deployment check:  is it calibrated? is bad-auto-post under the ceiling?
+                      -> autonomy & time-saved (only if safe)
+   |
+   +-- and the whole thing is logged for review (who/what/why), so any wrong
+       entry can be traced back later.
+```
+
+---
+
+## The two judgment-task rules (for the open-ended questions)
+
+Most tasks have a clear right answer. The open-ended ones (DD write-ups, variance
+commentary, client emails) are graded by a panel of three AI judges instead of a
+script, and two rules keep that fair:
+
+1. **Score named things, not vibes.** Instead of grading "is this good?", judges
+   score specific dimensions: Accuracy, Groundedness (is each claim backed by a
+   real document?), Citation Rate, Relevance, Depth, Clarity, Structure, Recency.
+   For a DD report, Groundedness and Citation Rate matter most. [MSFT]
+2. **Show the judge examples.** Each thing being scored comes with 3 good and 3 bad
+   sample answers so the judge knows what "good" looks like, and each is scored
+   separately so one judgement doesn't bias another. This noticeably steadies the
+   scores. [Hebbia]
+
+---
+
+## Things to keep in mind (honest caveats)
+
+- **Some settings are your call, not ours.** How much worse a missed red flag is
+  than a false alarm (the F-beta tilt), and where to set the auto-post and safety
+  thresholds — these encode *your* risk appetite. Decide them deliberately.
+- **Time-saved is still illustrative.** It relies on estimated human times until
+  real Kayess/Eldaas hours are filled in.
+- **Check the judges before trusting them.** Before relying on the AI judge panel,
+  confirm it agrees with your BIs on a sample. Hebbia did this against former
+  hedge-fund/PE analysts and found strong agreement — do the equivalent. [Hebbia]
+- **Keep a paper trail.** Every scored task should log its input, output, score,
+  reason, and which agent version produced it — so a wrong entry can always be
+  traced and reviewed afterward. [FAGI]
 
 ---
 
 ## References
 
-1. **[FAB]** Bigeard, Krishnan, Wu, et al. *Finance Agent Benchmark: Benchmarking
+1. **[FAB]** Bigeard, Krishnan, Wu et al. *Finance Agent Benchmark: Benchmarking
    LLMs on Real-world Financial Research Tasks.* Vals AI / Stanford, 2025.
-   arXiv:2508.00828 — https://arxiv.org/abs/2508.00828 .
-   Live v2 leaderboard & methodology (dealbreaker-gated Partial Credit, All-Pass,
-   3-judge jury, 3-run aggregation): https://www.vals.ai/benchmarks/fabv2 .
-   Supports: Partial Credit, All-Pass, jury, multi-run aggregation, class-balanced accuracy.
+   https://arxiv.org/abs/2508.00828 · leaderboard https://www.vals.ai/benchmarks/fabv2 .
+   Basis for Partial Credit, All-Pass, the judge panel, multi-run aggregation, and
+   class-balanced accuracy.
 
 2. **[Hebbia]** Skinner, Li, Ramanathan (Hebbia Research & Product). *Who Evaluates
    the Evaluator: Reaching Autonomous Consensus on Agentic Outputs.* 2025.
    Related public benchmark: https://www.hebbia.com/blog/which-model-will-give-me-the-edge .
-   Supports: permutation significance testing, independent per-criterion scoring,
-   3-good/3-bad anchored examples, human-expert validation of automated scores.
-   Builds on foundational LLM-as-judge work cataloged therein — G-Eval, GPTScore,
-   BooookScore, and MT-Bench / Chatbot Arena.
+   Basis for the significance test, scoring each criterion independently, the
+   3-good/3-bad examples, and validating judges against human experts. Builds on
+   G-Eval, GPTScore, BooookScore, and MT-Bench.
 
 3. **[MSFT]** Microsoft 365 Copilot Blog. *Finance Agent Benchmark: evaluating and
    improving AI for Finance.* May 2026.
-   https://techcommunity.microsoft.com/blog/microsoft365copilotblog/finance-agent-benchmark-evaluating-and-improving-ai-for-finance/4522978 .
-   Code: https://github.com/microsoft/FinanceBenchmark .
-   Supports: named judgment dimensions (Accuracy, Citation Rate, Clarity, Depth,
-   Groundedness, Recency, Relevance, Structure), equal-weighted task-area
-   composite, LLM-as-judge against rubric assertions, latency-constrained eval,
-   MCP tool-parity setup. Closest published peer to Synth's CFO (AP/AR) domain.
+   https://techcommunity.microsoft.com/blog/microsoft365copilotblog/finance-agent-benchmark-evaluating-and-improving-ai-for-finance/4522978
+   · code https://github.com/microsoft/FinanceBenchmark .
+   Basis for the named judgment dimensions and equal-weighting across task areas;
+   closest published peer to Synth's CFO (AP/AR) work.
 
 4. **[FAGI]** Future AGI. *Best Fintech AI Evaluation Platforms in 2026.* May 2026.
    https://futureagi.com/blog/best-fintech-ai-evaluation-platforms-2026/ .
-   Supports: the provenance / audit-trail principle only (reviewable, tamper-evident
-   per-decision record with score, reason, model version, and override). Note: this
-   is a vendor comparison piece; only the audit-trail principle is adopted, and the
-   US-specific regulations it cites do not apply to Synth's Indian context.
+   Basis for the audit-trail / paper-trail principle only. (Vendor comparison; the
+   US regulations it cites don't apply to Synth's Indian context — only the
+   reviewable-record idea is borrowed.)
 
-### Further domain references (context, not directly cited above)
-
-5. DualEntry. *Accounting AI Benchmark 2026* — bookkeeping/accounting model accuracy.
-   https://www.dualentry.com/accounting-ai-benchmark . Closest to Synth's CFO domain.
-6. FinGAIA: *A Chinese Benchmark for AI Agents in Real-World Financial Domain.*
-   arXiv:2507.17186 — https://arxiv.org/abs/2507.17186 . Multi-step, multi-tool agent
-   failure taxonomy.
+### Further reading (context)
+5. DualEntry. *Accounting AI Benchmark 2026.* https://www.dualentry.com/accounting-ai-benchmark — closest to Synth's bookkeeping domain.
+6. *FinGAIA: A Chinese Benchmark for AI Agents in Real-World Financial Domain.* https://arxiv.org/abs/2507.17186 — multi-step agent failure patterns.
