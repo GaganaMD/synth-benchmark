@@ -1,0 +1,11 @@
+theta_bad_auto_post: 0.01
+f_beta_default: 1.0
+f_beta:
+  auto_post: 0.5
+  red_flag: 2.0
+judge_model_ids:
+  - TODO_REAL_JUDGE_MODEL_A
+  - TODO_REAL_JUDGE_MODEL_B
+  - TODO_REAL_JUDGE_MODEL_C
+time_budget_source: csv
+
