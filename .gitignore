@@ -206,6 +206,11 @@ tempCodeRunnerFile.py
 # Ruff stuff:
 .ruff_cache/
 
+# Synth benchmark generated artifacts
+tasks/
+tasks_defective/
+results/
+
 # PyPI configuration file
 .pypirc
 

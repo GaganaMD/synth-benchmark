@@ -34,6 +34,12 @@ def run_task(task_dir: Path, mode: str) -> dict:
     grade = grade_task(task, expected, submission, audit)
     row = {
         "task_id": task["id"],
+        "task": {
+            "category": task.get("category"),
+            "service_line": task.get("service_line"),
+            "bi_band": task.get("bi_band"),
+            "tool": task.get("tool"),
+        },
         "score": grade["partial_credit"],
         "all_pass": grade["all_pass"],
         "elapsed_s": elapsed,
@@ -70,4 +76,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

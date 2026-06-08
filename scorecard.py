@@ -18,6 +18,10 @@ def scorecard(results_path: str) -> dict:
         for key in ("category", "service_line", "bi_band", "tool"):
             if task_meta.get(key):
                 buckets[f"{key}:{task_meta[key]}"].append(score)
+    categories = [vals for name, vals in buckets.items() if name.startswith("category:")]
+    if categories:
+        class_means = [mean_se(vals)[0] for vals in categories]
+        buckets["class_balanced_accuracy"] = class_means
     return {name: {"mean": mean_se(vals)[0], "se": mean_se(vals)[1], "n": len(vals)} for name, vals in buckets.items()}
 
 
@@ -31,4 +35,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

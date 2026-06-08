@@ -7,11 +7,14 @@ import random
 from synthbench.common import read_json
 
 
-def paired_scores(path_a: str, path_b: str) -> tuple[list[float], list[float]]:
+def paired_scores(path_a: str, path_b: str, category: str | None = None) -> tuple[list[float], list[float]]:
     a = read_json(path_a)
     b = read_json(path_b)
-    amap = {row["task_id"]: row["score"] for row in a.get("results", [])}
-    bmap = {row["task_id"]: row["score"] for row in b.get("results", [])}
+    def include(row: dict) -> bool:
+        return category is None or row.get("task", {}).get("category") == category
+
+    amap = {row["task_id"]: row["score"] for row in a.get("results", []) if include(row)}
+    bmap = {row["task_id"]: row["score"] for row in b.get("results", []) if include(row)}
     ids = sorted(set(amap) & set(bmap))
     return [amap[i] for i in ids], [bmap[i] for i in ids]
 
@@ -36,16 +39,27 @@ def paired_permutation(a: list[float], b: list[float], iters: int = 10000, seed:
     return {"diff": observed, "p": more_extreme / total}
 
 
+def classify(test: dict, alpha: float) -> str:
+    if test["p"] < alpha and test["diff"] > 0:
+        return "significant-win"
+    if test["p"] < alpha and test["diff"] < 0:
+        return "significant-loss"
+    return "tie"
+
+
 def compare(path_a: str, path_b: str, alpha: float = 0.05, iters: int = 10000) -> dict:
     a, b = paired_scores(path_a, path_b)
     test = paired_permutation(a, b, iters=iters)
-    if test["p"] < alpha and test["diff"] > 0:
-        outcome = "significant-win"
-    elif test["p"] < alpha and test["diff"] < 0:
-        outcome = "significant-loss"
-    else:
-        outcome = "tie"
-    return test | {"outcome": outcome, "n": len(a)}
+    overall = test | {"outcome": classify(test, alpha), "n": len(a)}
+
+    data_a = read_json(path_a)
+    categories = sorted({row.get("task", {}).get("category") for row in data_a.get("results", []) if row.get("task", {}).get("category")})
+    per_category = {}
+    for category in categories:
+        ca, cb = paired_scores(path_a, path_b, category)
+        ctest = paired_permutation(ca, cb, iters=iters)
+        per_category[category] = ctest | {"outcome": classify(ctest, alpha), "n": len(ca)}
+    return {"overall": overall, "per_category": per_category}
 
 
 def main() -> None:
@@ -60,4 +74,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

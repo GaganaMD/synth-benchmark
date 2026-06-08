@@ -24,7 +24,7 @@ def generate_defects(csv_path: str | Path = CANONICAL_CSV, out: str | Path = "ta
         if not task_dir.is_dir():
             continue
         task = read_json(task_dir / "task.json")
-        if task.get("gradability") == "Judgment":
+        if task.get("gradability") != "Deterministic":
             continue
         for defect_id, description in DEFECTS:
             variant = root / f"{task['id']}__{defect_id}"
