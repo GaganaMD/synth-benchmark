@@ -8,6 +8,10 @@ The canonical task bank is:
 
 The CSV is the single source of truth. Task packages are generated from it; do not hand-edit generated package metadata.
 
+## PDF Previews
+
+GitHub's embedded PDF viewer can fail on valid PDFs. Use the image-based previews in [docs/PDF_PREVIEWS.md](docs/PDF_PREVIEWS.md) to view the repo PDFs directly on GitHub.
+
 ## Quick Start
 
 Generate task packages:
