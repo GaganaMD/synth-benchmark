@@ -119,3 +119,9 @@ When `tools/finalize_manual_run.py --copy-to-task` is used, artifacts are also c
 ```text
 tasks_complete/<TASK_ID>/results/
 ```
+
+## `canonical_output.json`
+
+Phase 5 writes adapter-independent normalized output here. Future graders should consume this file instead of adapter-specific raw response files.
+
+See [Phase 5 Output Normalization](PHASE5_OUTPUT_NORMALIZATION.md).

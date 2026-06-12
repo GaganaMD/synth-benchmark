@@ -18,6 +18,7 @@ For local Codex experiments now, and OneDrive/AWS-backed runs later, use the com
 - [Phase 2 Trace Capture](docs/PHASE2_TRACE_CAPTURE.md)
 - [Phase 3 State Diff and Side Effect Auditing](docs/PHASE3_STATE_DIFF_AUDIT.md)
 - [Phase 4A Codex Execution Adapter](docs/PHASE4A_CODEX_ADAPTER.md)
+- [Phase 5 Output Normalization](docs/PHASE5_OUTPUT_NORMALIZATION.md)
 
 Prepare a first local Codex run cell:
 
@@ -36,6 +37,12 @@ Or validate the execution adapter without invoking Codex:
 
 ```bash
 python3 tools/run_codex_adapter.py --cell runs/codex/TXN-001/seed-0 --mode dry-run
+```
+
+Normalize a completed run cell for future grading:
+
+```bash
+python3 tools/normalize_output.py --cell runs/codex/TXN-001/seed-0
 ```
 
 ## Quick Start
