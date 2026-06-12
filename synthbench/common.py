@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 
-CANONICAL_CSV = Path("data/76LH_wildclaw_synth_benchmark.csv")
+CANONICAL_CSV = Path("data/v7.csv")
 
 
 def read_task_bank(csv_path: str | Path = CANONICAL_CSV) -> list[dict[str, Any]]:

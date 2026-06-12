@@ -32,7 +32,7 @@ All shared thresholds and model IDs live in `config.yaml`:
 - `judge_model_ids`
 - `time_budget_source`
 
-The harness still reads task time budgets from `data/76LH_wildclaw_synth_benchmark.csv`.
+The harness still reads task time budgets from `data/v7.csv`.
 
 ## Manual / Not Wired
 

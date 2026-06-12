@@ -4,7 +4,7 @@ Offline-first benchmark harness for the Synth long-horizon finance/DD task bank.
 
 The canonical task bank is:
 
-`data/76LH_wildclaw_synth_benchmark.csv`
+`data/v7.csv`
 
 The CSV is the single source of truth. Task packages are generated from it; do not hand-edit generated package metadata.
 
@@ -32,7 +32,7 @@ python3 tools/finalize_manual_run.py --cell runs/codex/TXN-001/seed-0 --task-dir
 Generate task packages:
 
 ```bash
-python3 gen_tasks.py --csv data/76LH_wildclaw_synth_benchmark.csv --out tasks
+python3 gen_tasks.py --csv data/v7.csv --out tasks
 ```
 
 Run the suite in offline mock mode:
