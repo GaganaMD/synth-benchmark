@@ -75,10 +75,12 @@ def run_task(task_dir: Path, mode: str) -> dict:
     return row
 
 
-def run_suite(harness: str, mode: str = "mock", tasks_root: str = "tasks") -> dict:
+def run_suite(harness: str, mode: str = "mock", tasks_root: str = "tasks", task_ids: set[str] | None = None) -> dict:
     root = Path(tasks_root)
     results = []
     for task_dir in sorted(p for p in root.iterdir() if p.is_dir()):
+        if task_ids and task_dir.name not in task_ids:
+            continue
         results.append(run_task(task_dir, mode))
     try:
         bad_auto_post = compute_bad_auto_post([], mode="mock" if mode == "mock" else "live")
@@ -125,8 +127,9 @@ def main() -> None:
     parser.add_argument("--harness", required=True)
     parser.add_argument("--mode", default="mock", choices=["mock", "live"])
     parser.add_argument("--tasks", default="tasks")
+    parser.add_argument("--task-id", action="append", help="Restrict grading to one or more task IDs.")
     args = parser.parse_args()
-    output = run_suite(args.harness, args.mode, args.tasks)
+    output = run_suite(args.harness, args.mode, args.tasks, set(args.task_id) if args.task_id else None)
     print(f"Ran {len(output['results'])} tasks; wrote results/{args.harness}/results.json")
 
 

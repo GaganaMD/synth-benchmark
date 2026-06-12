@@ -211,8 +211,12 @@ tempCodeRunnerFile.py
 
 # Synth benchmark generated artifacts
 tasks/
+tasks_complete/
 tasks_defective/
 results/
+runs/
+immutable_inputs/
+local_fixtures/
 
 # LaTeX build artifacts
 *.aux

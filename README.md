@@ -8,6 +8,25 @@ The canonical task bank is:
 
 The CSV is the single source of truth. Task packages are generated from it; do not hand-edit generated package metadata.
 
+## Complete Benchmark Pipeline
+
+For local Codex experiments now, and OneDrive/AWS-backed runs later, use the complete pipeline runbook:
+
+- [Complete Benchmark Runbook](docs/COMPLETE_BENCHMARK_RUNBOOK.md)
+- [Run Store Schema](docs/RUN_STORE_SCHEMA.md)
+
+Prepare a first local Codex run cell:
+
+```bash
+python3 tools/prepare_benchmark_run.py --task-id TXN-001 --harnesses codex --seeds 1 --storage-backend local --overwrite
+```
+
+Then paste `runs/codex/TXN-001/seed-0/prompt.txt` into Codex Terminal, save the final output and artifacts back into that run cell, and finalize:
+
+```bash
+python3 tools/finalize_manual_run.py --cell runs/codex/TXN-001/seed-0 --task-dir tasks_complete/TXN-001 --copy-to-task
+```
+
 ## Quick Start
 
 Generate task packages:

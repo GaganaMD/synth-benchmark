@@ -23,10 +23,19 @@ Working notes and checklist for sharing, documenting, and evaluating the full Sy
 
 ## Evaluation Pipeline
 
-- [ ] See and evaluate the output, then map it to the metrics
-- [ ] Create scripts to run all data points, collect output, and evaluate based on the defined metrics
+- [x] See and evaluate the output, then map it to the metrics
+- [x] Create scripts to prepare run cells, collect manual output, and evaluate based on the defined metrics
 - [ ] Run a fabrication check and confirm whether current metrics cover this
 - [ ] Identify differences in the rubric
+
+## Implemented Repo Support
+
+- Local run-cell preparation: `tools/prepare_benchmark_run.py`
+- Manual event capture: `tools/record_event.py`
+- Submission finalization: `tools/finalize_manual_run.py`
+- Pipeline readiness checks: `tools/check_pipeline_readiness.py`
+- Detailed operator guide: `docs/COMPLETE_BENCHMARK_RUNBOOK.md`
+- Run-store schema: `docs/RUN_STORE_SCHEMA.md`
 
 ## Open Questions
 
