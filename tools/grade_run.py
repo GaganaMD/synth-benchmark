@@ -8,6 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from synthbench.grading.engine import grade_cell, load_rubric
+from synthbench.intelligence import generate_run_intelligence_report
 
 
 def main() -> None:
@@ -32,11 +33,22 @@ def main() -> None:
         task=task,
         validate_artifacts=not args.skip_artifact_validation,
     )
+    intelligence = generate_run_intelligence_report(args.cell)
     if args.json:
-        print(json.dumps(result, indent=2, sort_keys=True))
+        payload = {
+            "grading_result": result,
+            "intelligence_report": {
+                "json": str(Path(args.cell) / "run_intelligence_report.json"),
+                "markdown": str(Path(args.cell) / "run_intelligence_report.md"),
+                "run_id": intelligence.get("run_metadata", {}).get("run_id"),
+            },
+        }
+        print(json.dumps(payload, indent=2, sort_keys=True))
     else:
         print(f"graded {result['task_id']}: score={result['operator_score']:.3f} all_pass={result['all_pass']}")
         print(args.output or str(Path(args.cell) / "grading_result.json"))
+        print(str(Path(args.cell) / "run_intelligence_report.json"))
+        print(str(Path(args.cell) / "run_intelligence_report.md"))
 
 
 if __name__ == "__main__":
