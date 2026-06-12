@@ -17,6 +17,7 @@ For local Codex experiments now, and OneDrive/AWS-backed runs later, use the com
 - [Phase 1 Infrastructure](docs/PHASE1_INFRASTRUCTURE.md)
 - [Phase 2 Trace Capture](docs/PHASE2_TRACE_CAPTURE.md)
 - [Phase 3 State Diff and Side Effect Auditing](docs/PHASE3_STATE_DIFF_AUDIT.md)
+- [Phase 4A Codex Execution Adapter](docs/PHASE4A_CODEX_ADAPTER.md)
 
 Prepare a first local Codex run cell:
 
@@ -29,6 +30,12 @@ Then paste `runs/codex/TXN-001/seed-0/prompt.txt` into Codex Terminal, save the 
 
 ```bash
 python3 tools/finalize_manual_run.py --cell runs/codex/TXN-001/seed-0 --task-dir tasks_complete/TXN-001 --copy-to-task
+```
+
+Or validate the execution adapter without invoking Codex:
+
+```bash
+python3 tools/run_codex_adapter.py --cell runs/codex/TXN-001/seed-0 --mode dry-run
 ```
 
 ## Quick Start
