@@ -10,6 +10,8 @@ from pathlib import Path
 from typing import Any
 
 from synthbench.common import write_json
+from synthbench.hashing import hash_tree, sha256_file
+from synthbench.state.snapshots import capture_snapshot, write_snapshot
 from synthbench.trace.events import append_event as append_trace_event
 from synthbench.trace.events import make_event
 
@@ -19,35 +21,6 @@ DEFAULT_HARNESSES = ("codex", "codex_hermes", "synth_max")
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-
-
-def sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as f:
-        for chunk in iter(lambda: f.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
-
-
-def hash_tree(root: Path) -> dict[str, Any]:
-    if not root.exists():
-        return {"root": str(root), "exists": False, "files": [], "tree_sha256": None}
-    files = []
-    digest = hashlib.sha256()
-    for path in sorted(p for p in root.rglob("*") if p.is_file()):
-        rel = path.relative_to(root).as_posix()
-        file_hash = sha256_file(path)
-        size = path.stat().st_size
-        files.append({"path": rel, "size": size, "sha256": file_hash})
-        digest.update(rel.encode("utf-8"))
-        digest.update(file_hash.encode("ascii"))
-    return {
-        "root": str(root),
-        "exists": True,
-        "file_count": len(files),
-        "files": files,
-        "tree_sha256": digest.hexdigest(),
-    }
 
 
 def git_value(args: list[str], default: str = "UNKNOWN") -> str:
@@ -214,12 +187,23 @@ def initialize_cell(
                 workspace_dir=(task_dir / "workspace").as_posix(),
             ),
         )
+    s0_path = run_dir / "state" / "S0.json"
+    if not s0_path.exists():
+        s0 = capture_snapshot(
+            snapshot_id=f"S0_{manifest.get('run_id') or manifest.get('task_id')}",
+            workspace_dir=task_dir / "workspace",
+            outputs_dir=run_dir / "artifacts",
+            mock_state_path=run_dir / "state" / "mock_state.json",
+        )
+        write_snapshot(s0, s0_path)
     write_json(
         run_dir / "state" / "state_diff.json",
         {
             "status": "NOT_CAPTURED",
             "backend": manifest.get("storage_backend"),
-            "notes": "Local file runs can leave this empty. OneDrive/Zoho/Tally/AWS runs should write S1-S0 diffs here.",
+            "s0_snapshot_path": s0_path.as_posix(),
+            "s1_snapshot_path": None,
+            "notes": "S1 and S1-S0 diff are captured after execution or manual artifact creation.",
             "changes": [],
         },
     )

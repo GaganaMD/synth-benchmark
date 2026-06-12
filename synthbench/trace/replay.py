@@ -11,7 +11,14 @@ def load_trace(cell_dir: str | Path) -> dict[str, Any]:
     root = Path(cell_dir)
     manifest = read_json(root / "manifest.json", default={}) or {}
     events = read_events(root / "events.jsonl")
-    return {"cell_dir": root.as_posix(), "manifest": manifest, "events": events}
+    state_dir = root / "state"
+    state = {
+        "s0": read_json(state_dir / "S0.json", default=None),
+        "s1": read_json(state_dir / "S1.json", default=None),
+        "diff": read_json(state_dir / "state_diff.json", default=None),
+        "side_effect_audit": read_json(state_dir / "side_effect_audit.json", default=None),
+    }
+    return {"cell_dir": root.as_posix(), "manifest": manifest, "events": events, "state": state}
 
 
 def reconstruct_timeline(manifest: dict[str, Any], events: list[dict[str, Any]]) -> dict[str, Any]:
@@ -48,4 +55,5 @@ def replay_cell(cell_dir: str | Path) -> dict[str, Any]:
         "valid": not issues,
         "issues": issues,
         "timeline": reconstruct_timeline(trace["manifest"], trace["events"]),
+        "state": trace["state"],
     }

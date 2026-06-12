@@ -16,6 +16,7 @@ For local Codex experiments now, and OneDrive/AWS-backed runs later, use the com
 - [Run Store Schema](docs/RUN_STORE_SCHEMA.md)
 - [Phase 1 Infrastructure](docs/PHASE1_INFRASTRUCTURE.md)
 - [Phase 2 Trace Capture](docs/PHASE2_TRACE_CAPTURE.md)
+- [Phase 3 State Diff and Side Effect Auditing](docs/PHASE3_STATE_DIFF_AUDIT.md)
 
 Prepare a first local Codex run cell:
 

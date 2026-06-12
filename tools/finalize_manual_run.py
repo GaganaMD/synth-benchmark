@@ -9,6 +9,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from synthbench.common import read_json, write_json
 from synthbench.run_store import hash_tree, utc_now
+from synthbench.state.diff import compute_state_diff, write_state_diff
+from synthbench.state.snapshots import capture_snapshot, load_snapshot, write_snapshot
 from synthbench.trace.events import append_event, make_task_complete_event, parse_timestamp, read_events
 
 
@@ -71,6 +73,20 @@ def main() -> None:
         )
         events = read_events(cell / "events.jsonl")
     artifacts_dir = cell / "artifacts"
+    s1_path = cell / "state" / "S1.json"
+    s1 = capture_snapshot(
+        snapshot_id=f"S1_{manifest.get('run_id') or manifest.get('task_id')}",
+        workspace_dir=manifest.get("workspace_dir"),
+        outputs_dir=artifacts_dir,
+        mock_state_path=cell / "state" / "mock_state.json",
+    )
+    write_snapshot(s1, s1_path)
+    s0_path = cell / "state" / "S0.json"
+    if s0_path.exists():
+        diff = compute_state_diff(load_snapshot(s0_path), s1)
+        diff["s0_snapshot_path"] = s0_path.as_posix()
+        diff["s1_snapshot_path"] = s1_path.as_posix()
+        write_state_diff(diff, cell / "state" / "state_diff.json")
     submission = read_json(cell / "submission.json", default={}) or {}
     submission.update(
         {

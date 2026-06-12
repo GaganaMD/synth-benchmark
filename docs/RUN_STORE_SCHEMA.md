@@ -81,7 +81,7 @@ Required fields:
 
 ## `state/state_diff.json`
 
-For local-only runs this may remain a placeholder. For OneDrive, Zoho, Tally, or AWS-backed runs, populate it with S1-S0 changes.
+For local-only runs this records the filesystem/mock-state S1-S0 diff. For OneDrive, Zoho, Tally, or AWS-backed runs, extend the same schema with live system objects.
 
 Recommended fields:
 
@@ -95,6 +95,8 @@ Recommended fields:
 | `landed_correct` | Count of correct landed side effects |
 | `claimed_effects` | Count of claimed side effects |
 | `control_violation` | True if unsafe/destructive action occurred |
+
+Phase 3 details are documented in [Phase 3 State Diff and Side Effect Auditing](PHASE3_STATE_DIFF_AUDIT.md).
 
 ## Artifacts
 
