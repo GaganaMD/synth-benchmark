@@ -12,6 +12,11 @@ run_store:
   immutable_inputs: immutable_inputs
   local_fixtures: local_fixtures
   events_file: events.jsonl
+registries:
+  datasets: registry/datasets.jsonl
+  latest_dataset: registry/latest_dataset.json
+  fixtures: registry/fixtures.jsonl
+  experiments: registry/experiments.jsonl
 storage_backends:
   local: enabled
   onedrive: planned

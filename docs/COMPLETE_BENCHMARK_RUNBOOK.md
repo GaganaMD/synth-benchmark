@@ -9,7 +9,7 @@ The repo is ready for a small initial set of experiments with local files. OneDr
 | Stage | Status in repo | Main files |
 | --- | --- | --- |
 | 1 Dataset & questionnaire | Ready | `data/*.csv`, `gen_tasks.py` |
-| 2 Provisioning & determinism | Ready for local, scaffolded for live | `config.yaml`, `tools/prepare_benchmark_run.py`, `manifest.json` |
+| 2 Provisioning & determinism | Ready for local, scaffolded for live | `config.yaml`, `tools/register_dataset.py`, `tools/prepare_benchmark_run.py`, `manifest.json` |
 | 3 Run matrix & scheduling | Ready for small manual batches | `tools/prepare_benchmark_run.py` |
 | 4 Agent execution | Manual capture now, adapter-ready later | `prompt.txt`, `events.jsonl`, `artifacts/` |
 | 5 Capture & normalize | Ready for manual finalization | `tools/finalize_manual_run.py`, `submission.json`, `state/state_diff.json` |
@@ -63,8 +63,13 @@ Exact model IDs still need to be pinned in each `manifest.json` before final ben
 Prepare one task for Codex:
 
 ```bash
+python3 tools/register_dataset.py \
+  --dataset-version v10-revised-labels \
+  --csv data/v10.csv
+
 python3 tools/prepare_benchmark_run.py \
-  --csv revised_benchmark.csv \
+  --csv data/v10.csv \
+  --dataset-version v10-revised-labels \
   --tasks-out tasks_complete \
   --runs-root runs \
   --harnesses codex \
@@ -79,7 +84,8 @@ If your local fixtures are already organized by task ID, use:
 
 ```bash
 python3 tools/prepare_benchmark_run.py \
-  --csv revised_benchmark.csv \
+  --csv data/v10.csv \
+  --dataset-version v10-revised-labels \
   --tasks-out tasks_complete \
   --runs-root runs \
   --harnesses codex \
@@ -168,7 +174,8 @@ Prepare the same task for all three:
 
 ```bash
 python3 tools/prepare_benchmark_run.py \
-  --csv revised_benchmark.csv \
+  --csv data/v10.csv \
+  --dataset-version v10-revised-labels \
   --tasks-out tasks_complete \
   --runs-root runs \
   --harnesses all \

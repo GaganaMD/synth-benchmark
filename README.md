@@ -14,11 +14,13 @@ For local Codex experiments now, and OneDrive/AWS-backed runs later, use the com
 
 - [Complete Benchmark Runbook](docs/COMPLETE_BENCHMARK_RUNBOOK.md)
 - [Run Store Schema](docs/RUN_STORE_SCHEMA.md)
+- [Phase 1 Infrastructure](docs/PHASE1_INFRASTRUCTURE.md)
 
 Prepare a first local Codex run cell:
 
 ```bash
-python3 tools/prepare_benchmark_run.py --task-id TXN-001 --harnesses codex --seeds 1 --storage-backend local --overwrite
+python3 tools/register_dataset.py --dataset-version v7 --csv data/v7.csv
+python3 tools/prepare_benchmark_run.py --csv data/v7.csv --dataset-version v7 --task-id TXN-001 --harnesses codex --seeds 1 --storage-backend local --overwrite
 ```
 
 Then paste `runs/codex/TXN-001/seed-0/prompt.txt` into Codex Terminal, save the final output and artifacts back into that run cell, and finalize:

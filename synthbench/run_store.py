@@ -73,6 +73,17 @@ def environment_snapshot() -> dict[str, Any]:
     }
 
 
+def environment_version(snapshot: dict[str, Any] | None = None) -> str:
+    data = snapshot or environment_snapshot()
+    basis = {
+        "platform": data.get("platform"),
+        "python": data.get("python"),
+        "machine": data.get("machine"),
+    }
+    digest = hashlib.sha256(json.dumps(basis, sort_keys=True).encode("utf-8")).hexdigest()[:16]
+    return f"env_{digest}"
+
+
 def cell_dir(runs_root: Path, harness: str, task_id: str, seed: int) -> Path:
     return runs_root / harness / task_id / f"seed-{seed}"
 
@@ -114,29 +125,59 @@ def build_manifest(
     config: dict[str, Any],
     storage_backend: str,
     model_id: str | None = None,
+    experiment_record: dict[str, Any] | None = None,
+    dataset_record: dict[str, Any] | None = None,
+    fixture_record: dict[str, Any] | None = None,
+    environment_version_id: str | None = None,
 ) -> dict[str, Any]:
     harnesses = config.get("harnesses", {}) if isinstance(config.get("harnesses"), dict) else {}
+    repo = repo_state()
+    env = environment_snapshot()
+    workspace = hash_tree(task_dir / "workspace")
+    fixture_version = (fixture_record or {}).get("fixture_version")
+    dataset_version = (dataset_record or {}).get("dataset_version")
+    resolved_model_id = model_id or f"TODO_PIN_EXACT_MODEL_FOR_{harness}"
     return {
         "schema_version": "1.0",
+        "experiment_id": (experiment_record or {}).get("experiment_id"),
+        "run_id": (experiment_record or {}).get("run_id"),
         "cell_id": f"{harness}::{task.get('id')}::seed-{seed}",
         "task_id": task.get("id"),
         "harness": harness,
+        "harness_id": harness,
         "harness_path": harnesses.get(harness),
-        "model_id": model_id or f"TODO_PIN_EXACT_MODEL_FOR_{harness}",
+        "model_id": resolved_model_id,
         "seed": seed,
         "temperature": 0,
+        "dataset_version": dataset_version,
+        "dataset": dataset_record,
+        "fixture_version": fixture_version,
+        "fixture": fixture_record,
+        "environment_version": environment_version_id or environment_version(env),
         "csv_path": csv_path.as_posix(),
         "task_dir": task_dir.as_posix(),
         "workspace_dir": (task_dir / "workspace").as_posix(),
         "storage_backend": storage_backend,
         "time_budget_s": task.get("time_budget_s"),
         "expected_tool_calls": task.get("expected_tool_calls"),
-        "repo": repo_state(),
-        "environment": environment_snapshot(),
-        "workspace_hash": hash_tree(task_dir / "workspace"),
+        "git_commit": repo.get("commit"),
+        "repo": repo,
+        "environment": env,
+        "workspace_hash": workspace,
         "config_snapshot": config,
         "replay": {
-            "requires": ["manifest.json", "prompt.txt", "events.jsonl", "submission.json", "artifacts/"],
+            "requires": [
+                "manifest.json",
+                "prompt.txt",
+                "events.jsonl",
+                "submission.json",
+                "artifacts/",
+                "state/state_diff.json",
+            ],
+            "dataset_version": dataset_version,
+            "fixture_version": fixture_version,
+            "environment_version": environment_version_id or environment_version(env),
+            "fixture_workspace_copy": (fixture_record or {}).get("workspace_copy"),
             "baseline_state": "S0 placeholder for local runs; replace with tenant snapshots for live OneDrive/Zoho/Tally/AWS runs",
         },
     }

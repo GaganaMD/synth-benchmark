@@ -24,6 +24,20 @@ def check_cell(cell: Path) -> list[str]:
         if not (cell / rel).exists():
             issues.append(f"missing {cell / rel}")
     manifest = read_json(cell / "manifest.json", default={}) or {}
+    for key in (
+        "experiment_id",
+        "run_id",
+        "dataset_version",
+        "fixture_version",
+        "environment_version",
+        "workspace_hash",
+        "git_commit",
+        "seed",
+        "model_id",
+        "harness_id",
+    ):
+        if manifest.get(key) in (None, "", {}):
+            issues.append(f"manifest missing {key}")
     if manifest.get("model_id", "").startswith("TODO"):
         issues.append(f"model_id not pinned in {cell / 'manifest.json'}")
     if manifest.get("repo", {}).get("status_short"):

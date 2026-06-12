@@ -13,20 +13,29 @@ Required fields:
 | Field | Meaning |
 | --- | --- |
 | `schema_version` | Manifest schema version |
+| `experiment_id` | Matrix-level experiment identifier |
+| `run_id` | Unique prepared run-cell identifier |
 | `cell_id` | `<harness>::<task_id>::seed-<n>` |
 | `task_id` | Benchmark task ID |
 | `harness` | `codex`, `codex_hermes`, or `synth_max` |
+| `harness_id` | Stable harness ID used by registries |
 | `harness_path` | Local path or identifier for the runner |
 | `model_id` | Exact dated model/runtime ID |
 | `seed` | Repeat seed |
+| `dataset_version` | Registered dataset version |
+| `fixture_version` | Registered immutable fixture version |
+| `environment_version` | Deterministic environment fingerprint |
 | `temperature` | Sampling temperature, usually `0` |
 | `csv_path` | Source task CSV |
 | `task_dir` | Generated task package |
 | `workspace_dir` | Workspace visible to the agent |
 | `storage_backend` | `local`, `onedrive`, or `aws` |
 | `repo.commit` | Git commit at preparation time |
+| `git_commit` | Top-level git commit shortcut |
 | `workspace_hash` | Content hash inventory of the workspace |
 | `config_snapshot` | Relevant benchmark configuration |
+
+The manifest also embeds the full `dataset` and `fixture` records so a future replay can validate registry drift.
 
 ## `events.jsonl`
 
