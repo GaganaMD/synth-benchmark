@@ -15,6 +15,23 @@ Experiment ID: `exp_0bad1e5186af`
 | artifact_contracts_complete | false |
 | intelligence_report_completeness_percent | 0.0 |
 | infrastructure_vs_run_status | infrastructure_available_but_run_incomplete |
+| execution_status | BLOCKED |
+| termination_reason | benchmark_corpus_failure |
+| termination_stage | workspace_discovery |
+| operator_action_required | provide real benchmark input documents before interpreting agent metrics |
+| benchmark_lifecycle_stage | CORPUS_NOT_READY |
+
+## Workspace Quality Assessment
+
+| Metric | Value |
+| --- | --- |
+| real_documents | 0 |
+| placeholder_documents | 5 |
+| synthetic_documents | 0 |
+| missing_documents | 5 |
+| workspace_readiness_score | 0.0 |
+| workspace_classification | PLACEHOLDER_ONLY |
+| missing_expected_items | intake; chart_of_accounts.csv; recurring_master.csv; reimbursement_policy.md; prior_postings.csv |
 
 ## Metric Availability Matrix
 

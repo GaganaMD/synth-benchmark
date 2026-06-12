@@ -94,6 +94,9 @@ def test_generate_run_intelligence_report(tmp_path: Path):
     assert (cell / "run_intelligence_report.json").exists()
     assert (cell / "run_intelligence_report.md").exists()
     assert report["benchmark_completeness"]["execution_complete"] is True
+    assert report["benchmark_completeness"]["execution_status"] in {"COMPLETED", "GRADED"}
+    assert report["benchmark_completeness"]["termination_reason"] in {"completed", "metrics_partially_unavailable"}
+    assert report["benchmark_completeness"]["benchmark_lifecycle_stage"] in {"READY_FOR_REVIEW", "GRADED_METRICS_PARTIAL"}
     assert report["benchmark_completeness"]["normalization_complete"] is True
     assert report["benchmark_completeness"]["grading_complete"] is True
     assert report["benchmark_completeness"]["intelligence_report_completeness_percent"] > 0
@@ -107,6 +110,8 @@ def test_generate_run_intelligence_report(tmp_path: Path):
     assert report["comparison_ready_fields"]["tool_calls"] == 1
     assert report["tool_analysis"]["tools_ranked_by_usage"][0]["tool_name"] == "read"
     assert report["workspace_analysis"]["workspace_file_recall"] == 1.0
+    assert report["workspace_quality_assessment"]["real_documents"] == 2
+    assert report["workspace_quality_assessment"]["workspace_classification"] == "READY"
     assert report["evidence_document_utilization_analysis"]["document_influence_table"]
     assert report["document_importance_ranking"][0]["document"]
     markdown = (cell / "run_intelligence_report.md").read_text(encoding="utf-8")
@@ -146,5 +151,12 @@ def test_intelligence_report_marks_incomplete_run(tmp_path: Path):
     assert completeness["grading_complete"] is False
     assert completeness["metrics_complete"] is False
     assert completeness["infrastructure_vs_run_status"] == "infrastructure_available_but_run_incomplete"
+    assert completeness["termination_reason"] == "benchmark_corpus_failure"
+    assert completeness["termination_stage"] == "workspace_discovery"
+    assert completeness["operator_action_required"]
+    assert completeness["benchmark_lifecycle_stage"] == "CORPUS_NOT_READY"
+    assert report["workspace_quality_assessment"]["workspace_classification"] == "MISSING"
+    assert report["workspace_quality_assessment"]["workspace_readiness_score"] == 0.0
+    assert report["failure_analysis"]["failures"][0]["failure_type"] == "benchmark_corpus_failure"
     assert any(row["metric_name"] == "runtime_seconds" and not row["available"] for row in report["metric_availability_matrix"])
     assert any(row["artifact"] == "canonical_output.json" and not row["present"] for row in report["artifact_availability_matrix"])

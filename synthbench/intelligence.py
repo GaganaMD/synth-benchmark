@@ -36,7 +36,8 @@ def generate_run_intelligence_report(cell: str | Path) -> dict[str, Any]:
     file_reads = _file_events(events, "file_read")
     file_writes = _file_events(events, "file_write")
     tool_analysis = _tool_analysis(events)
-    workspace = _workspace_analysis(workspace_files, file_reads, file_writes, state_diff, output_text)
+    workspace_quality = _workspace_quality_assessment(manifest, task, workspace_files)
+    workspace = _workspace_analysis(manifest, task, workspace_files, file_reads, file_writes, state_diff, output_text, workspace_quality)
     documents = _document_utilization(workspace_files, file_reads, state_diff, canonical, grading, output_text)
     decisions = _decision_trace(documents, grading, events)
     grounding = _grounding_report(canonical, documents, grading)
@@ -48,8 +49,19 @@ def generate_run_intelligence_report(cell: str | Path) -> dict[str, Any]:
     metrics = _metric_computation(grading_analysis, grounding, retrieval, tool_analysis, state, execution)
     artifact_matrix = _artifact_availability_matrix(cell_dir)
     metric_matrix = _metric_availability_matrix(cell_dir, events, metrics)
-    completeness = _benchmark_completeness(cell_dir, submission, events, canonical, grading, metrics, artifact_matrix, metric_matrix)
-    failures = _failure_analysis(execution, tool_analysis, grounding, retrieval, state, output, grading)
+    completeness = _benchmark_completeness(
+        cell_dir,
+        submission,
+        events,
+        canonical,
+        grading,
+        metrics,
+        artifact_matrix,
+        metric_matrix,
+        workspace_quality,
+        tool_analysis,
+    )
+    failures = _failure_analysis(execution, tool_analysis, grounding, retrieval, state, output, grading, workspace_quality, completeness)
     enterprise = _enterprise_analysis(task, execution, grounding, state, tool_analysis)
     audit_trail = _audit_trail(grounding, decisions, documents, events)
     research_notes = _research_notes(execution, tool_analysis, grounding, retrieval, grading_analysis, failures)
@@ -68,6 +80,7 @@ def generate_run_intelligence_report(cell: str | Path) -> dict[str, Any]:
         "execution_summary": execution,
         "tool_analysis": tool_analysis,
         "workspace_analysis": workspace,
+        "workspace_quality_assessment": workspace_quality,
         "evidence_document_utilization_analysis": documents,
         "decision_trace_analysis": decisions,
         "evidence_grounding_report": grounding,
@@ -154,6 +167,9 @@ def render_run_intelligence_markdown(report: dict[str, Any]) -> str:
         "",
         "## Workspace Analysis",
         _kv(report.get("workspace_analysis", {})),
+        "",
+        "## Workspace Quality Assessment",
+        _kv(report.get("workspace_quality_assessment", {})),
         "",
         "## Document Influence Table",
         _table(
@@ -268,6 +284,8 @@ def _benchmark_completeness(
     metrics: dict[str, Any],
     artifact_matrix: list[dict[str, Any]],
     metric_matrix: list[dict[str, Any]],
+    workspace_quality: dict[str, Any],
+    tool_analysis: dict[str, Any],
 ) -> dict[str, Any]:
     execution_complete = submission.get("status") in {"COMPLETED", "FAILED", "TIMED_OUT"} and any(
         event.get("event_type") == "task_complete" for event in events
@@ -277,6 +295,17 @@ def _benchmark_completeness(
     metrics_complete = bool(metric_matrix) and all(item.get("available") is True for item in metric_matrix)
     artifact_complete = all(item.get("present") and item.get("validated") for item in artifact_matrix)
     checks = [execution_complete, normalization_complete, grading_complete, metrics_complete, artifact_complete]
+    lifecycle = _lifecycle_diagnostics(
+        submission=submission,
+        events=events,
+        execution_complete=execution_complete,
+        normalization_complete=normalization_complete,
+        grading_complete=grading_complete,
+        metrics_complete=metrics_complete,
+        artifact_complete=artifact_complete,
+        workspace_quality=workspace_quality,
+        tool_analysis=tool_analysis,
+    )
     return {
         "execution_complete": execution_complete,
         "normalization_complete": normalization_complete,
@@ -285,6 +314,106 @@ def _benchmark_completeness(
         "artifact_contracts_complete": artifact_complete,
         "intelligence_report_completeness_percent": _round(100 * sum(1 for item in checks if item) / len(checks)),
         "infrastructure_vs_run_status": "run_exercised" if all(checks) else "infrastructure_available_but_run_incomplete",
+        **lifecycle,
+    }
+
+
+def _lifecycle_diagnostics(
+    *,
+    submission: dict[str, Any],
+    events: list[dict[str, Any]],
+    execution_complete: bool,
+    normalization_complete: bool,
+    grading_complete: bool,
+    metrics_complete: bool,
+    artifact_complete: bool,
+    workspace_quality: dict[str, Any],
+    tool_analysis: dict[str, Any],
+) -> dict[str, Any]:
+    status = submission.get("status") or "UNKNOWN"
+    event_types = {event.get("event_type") for event in events}
+    has_task_start = "task_start" in event_types
+    has_task_complete = "task_complete" in event_types
+    has_tool_events = bool(tool_analysis.get("tools_ranked_by_usage"))
+    exception_events = [event for event in events if event.get("event_type") == "exception"]
+    tool_failure_rate = _numeric_or_none(tool_analysis.get("tool_failure_rate")) or 0.0
+    workspace_class = workspace_quality.get("workspace_classification")
+
+    if not has_task_start:
+        termination_stage = "preparation"
+        termination_reason = "infrastructure_failure_missing_trace_start"
+        execution_status = "NOT_STARTED"
+        operator_action_required = "repair run cell trace artifacts before execution"
+        lifecycle_stage = "PREPARED_INCOMPLETE"
+    elif workspace_class in {"PLACEHOLDER_ONLY", "MISSING"} and not has_tool_events:
+        termination_stage = "workspace_discovery"
+        termination_reason = "benchmark_corpus_failure"
+        execution_status = "BLOCKED"
+        operator_action_required = "provide real benchmark input documents or confirm placeholder-only dry run"
+        lifecycle_stage = "CORPUS_NOT_READY"
+    elif status == "AWAITING_AGENT_OUTPUT" and not has_tool_events and not has_task_complete:
+        termination_stage = "pre_execution"
+        termination_reason = "operator_cancellation_or_execution_not_started"
+        execution_status = "WAITING_FOR_OPERATOR"
+        operator_action_required = "confirm workspace selection and start benchmark execution"
+        lifecycle_stage = "AWAITING_EXECUTION"
+    elif exception_events and "permission" in " ".join(str(e.get("message", "")).lower() for e in exception_events):
+        termination_stage = "adapter_execution"
+        termination_reason = "infrastructure_failure"
+        execution_status = "FAILED"
+        operator_action_required = "fix adapter permissions/environment and rerun"
+        lifecycle_stage = "EXECUTION_FAILED"
+    elif status == "FAILED" or tool_failure_rate > 0:
+        termination_stage = "agent_execution"
+        termination_reason = "agent_or_tool_failure"
+        execution_status = "FAILED"
+        operator_action_required = "inspect failed tool calls, agent output, and retry policy"
+        lifecycle_stage = "EXECUTION_FAILED"
+    elif execution_complete and not normalization_complete:
+        termination_stage = "normalization"
+        termination_reason = "normalization_pending_or_failed"
+        execution_status = "EXECUTED"
+        operator_action_required = "run output normalization"
+        lifecycle_stage = "EXECUTION_COMPLETE_NORMALIZATION_PENDING"
+    elif normalization_complete and not grading_complete:
+        termination_stage = "grading"
+        termination_reason = "grading_pending_or_failed"
+        execution_status = "NORMALIZED"
+        operator_action_required = "run grading"
+        lifecycle_stage = "NORMALIZED_GRADING_PENDING"
+    elif grading_complete and not metrics_complete:
+        termination_stage = "metrics"
+        termination_reason = "metrics_partially_unavailable"
+        execution_status = "GRADED"
+        operator_action_required = "review metric availability matrix and missing upstream evidence"
+        lifecycle_stage = "GRADED_METRICS_PARTIAL"
+    elif execution_complete and normalization_complete and grading_complete and artifact_complete:
+        termination_stage = "complete"
+        termination_reason = "completed"
+        execution_status = "COMPLETED"
+        operator_action_required = "none"
+        lifecycle_stage = "READY_FOR_REVIEW"
+    else:
+        termination_stage = "unknown"
+        termination_reason = "incomplete_artifacts"
+        execution_status = "INCOMPLETE"
+        operator_action_required = "review artifact availability matrix"
+        lifecycle_stage = "INCOMPLETE"
+
+    if workspace_class in {"PLACEHOLDER_ONLY", "MISSING"} and termination_reason not in {
+        "operator_cancellation_or_execution_not_started",
+        "infrastructure_failure_missing_trace_start",
+    }:
+        termination_reason = "benchmark_corpus_failure"
+        operator_action_required = "provide real benchmark input documents before interpreting agent metrics"
+        lifecycle_stage = "CORPUS_NOT_READY"
+
+    return {
+        "execution_status": execution_status,
+        "termination_reason": termination_reason,
+        "termination_stage": termination_stage,
+        "operator_action_required": operator_action_required,
+        "benchmark_lifecycle_stage": lifecycle_stage,
     }
 
 
@@ -494,12 +623,67 @@ def _tool_analysis(events: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def _workspace_quality_assessment(manifest: dict[str, Any], task: dict[str, Any], workspace_files: list[str]) -> dict[str, Any]:
+    workspace_dir = Path(manifest.get("workspace_dir", ""))
+    expected = _expected_workspace_items(task.get("workspace") or "")
+    real_documents = 0
+    placeholder_documents = 0
+    synthetic_documents = 0
+    classified_files = []
+    for rel in sorted(workspace_files):
+        full_path = workspace_dir / rel if workspace_dir else Path(rel)
+        classification, reason = _classify_workspace_file(rel, full_path)
+        if classification == "real":
+            real_documents += 1
+        elif classification == "placeholder":
+            placeholder_documents += 1
+        elif classification == "synthetic":
+            synthetic_documents += 1
+        classified_files.append({"path": rel, "classification": classification, "reason": reason})
+
+    satisfied_expected = set()
+    for item in expected:
+        for entry in classified_files:
+            if entry["classification"] != "real":
+                continue
+            path = entry["path"]
+            if path == item or path.startswith(f"{item}/") or Path(path).name == item:
+                satisfied_expected.add(item)
+    missing_expected = [item for item in expected if item not in satisfied_expected]
+    missing_documents = len(missing_expected)
+    total_signals = real_documents + placeholder_documents + synthetic_documents + missing_documents
+    readiness_score = _round(real_documents / total_signals) if total_signals else 0.0
+    if not workspace_files and missing_documents:
+        classification = "MISSING"
+    elif real_documents == 0 and placeholder_documents > 0:
+        classification = "PLACEHOLDER_ONLY"
+    elif real_documents > 0 and (placeholder_documents or synthetic_documents or missing_documents):
+        classification = "PARTIAL"
+    elif real_documents > 0 and missing_documents == 0:
+        classification = "READY"
+    else:
+        classification = "MISSING"
+    return {
+        "real_documents": real_documents,
+        "placeholder_documents": placeholder_documents,
+        "synthetic_documents": synthetic_documents,
+        "missing_documents": missing_documents,
+        "missing_expected_items": missing_expected,
+        "workspace_readiness_score": readiness_score,
+        "workspace_classification": classification,
+        "classified_files": classified_files,
+    }
+
+
 def _workspace_analysis(
+    manifest: dict[str, Any],
+    task: dict[str, Any],
     workspace_files: list[str],
     file_reads: list[dict[str, Any]],
     file_writes: list[dict[str, Any]],
     state_diff: dict[str, Any],
     output_text: str,
+    workspace_quality: dict[str, Any],
 ) -> dict[str, Any]:
     read_paths = _paths_from_events(file_reads)
     write_paths = _paths_from_events(file_writes)
@@ -520,6 +704,12 @@ def _workspace_analysis(
         "unused_but_available_files": sorted(available - read),
         "files_never_examined": sorted(available - read),
         "files_referenced_in_output": referenced,
+        "real_documents": workspace_quality.get("real_documents"),
+        "placeholder_documents": workspace_quality.get("placeholder_documents"),
+        "synthetic_documents": workspace_quality.get("synthetic_documents"),
+        "missing_documents": workspace_quality.get("missing_documents"),
+        "workspace_readiness_score": workspace_quality.get("workspace_readiness_score"),
+        "workspace_classification": workspace_quality.get("workspace_classification"),
     }
 
 
@@ -799,9 +989,47 @@ def _failure_analysis(
     state: dict[str, Any],
     output: dict[str, Any],
     grading: dict[str, Any],
+    workspace_quality: dict[str, Any],
+    completeness: dict[str, Any],
 ) -> dict[str, Any]:
     failures = []
-    if execution.get("status") != "COMPLETED":
+    termination_reason = completeness.get("termination_reason")
+    if workspace_quality.get("workspace_classification") in {"PLACEHOLDER_ONLY", "MISSING"}:
+        failures.append(
+            _failure(
+                "benchmark_corpus_failure",
+                "high",
+                f"workspace classified as {workspace_quality.get('workspace_classification')}",
+                ["manifest.json", "state/S0.json", "workspace"],
+                "Provide real benchmark documents matching the task workspace specification.",
+            )
+        )
+    if termination_reason == "operator_cancellation_or_execution_not_started":
+        failures.append(
+            _failure(
+                "operator_cancellation",
+                "medium",
+                "run was prepared but execution did not start or was cancelled before tool use",
+                ["events.jsonl", "submission.json"],
+                "Confirm workspace selection and intentionally start execution.",
+            )
+        )
+    if termination_reason in {"infrastructure_failure", "infrastructure_failure_missing_trace_start"}:
+        failures.append(
+            _failure(
+                "infrastructure_failure",
+                "high",
+                "run artifacts or adapter environment prevented benchmark execution",
+                ["events.jsonl", "manifest.json"],
+                "Repair the run cell or adapter environment, then rerun.",
+            )
+        )
+    if execution.get("status") != "COMPLETED" and termination_reason not in {
+        "benchmark_corpus_failure",
+        "operator_cancellation_or_execution_not_started",
+        "infrastructure_failure",
+        "infrastructure_failure_missing_trace_start",
+    }:
         failures.append(_failure("tool_failure", "high", "run did not complete successfully", ["submission.json", "events.jsonl"], "Inspect adapter/tool errors and rerun once environment access is fixed."))
     if _numeric_or_none(tool_analysis.get("tool_failure_rate")) not in (None, 0.0):
         failures.append(_failure("tool_failure", "medium", "one or more tool events failed", ["events.jsonl"], "Review failed tool_result events and retry/recovery behavior."))
@@ -979,6 +1207,44 @@ def _document_type(path: str) -> str:
     if suffix in {".md", ".txt"}:
         return "text"
     return suffix.strip(".") or "unknown"
+
+
+def _expected_workspace_items(workspace_spec: str) -> list[str]:
+    items = []
+    for raw in str(workspace_spec or "").split(","):
+        item = raw.strip()
+        if not item:
+            continue
+        item = item.split("(", 1)[0].strip()
+        item = item.split(":", 1)[0].strip()
+        item = item.replace("...", "").strip().strip("./")
+        if item and item not in items:
+            items.append(item)
+    return items
+
+
+def _classify_workspace_file(rel_path: str, full_path: Path) -> tuple[str, str]:
+    lower_path = rel_path.lower()
+    text = ""
+    if full_path.exists() and full_path.is_file() and full_path.stat().st_size <= 1024 * 1024:
+        try:
+            text = full_path.read_text(encoding="utf-8", errors="ignore").lower()
+        except OSError:
+            text = ""
+    placeholder_markers = (
+        "placeholder input folder",
+        "bi must drop",
+        "task-specific input assets here",
+        "source workspace spec:",
+    )
+    synthetic_markers = ("synthetic", "sample", "dummy", "mock", "fixture-only", "generated test")
+    if Path(rel_path).name.lower() == "readme.md" and any(marker in text for marker in placeholder_markers):
+        return "placeholder", "generated placeholder README; real source document not present"
+    if any(marker in lower_path for marker in synthetic_markers) or any(marker in text for marker in synthetic_markers):
+        return "synthetic", "file name or content indicates synthetic/sample fixture"
+    if not full_path.exists():
+        return "missing", "file listed in snapshot but not present on disk"
+    return "real", "non-placeholder workspace file"
 
 
 def _why_used(path: str, reads: int, final: bool, grading: bool, state: bool) -> str:
