@@ -20,6 +20,7 @@ For local Codex experiments now, and OneDrive/AWS-backed runs later, use the com
 - [Phase 4A Codex Execution Adapter](docs/PHASE4A_CODEX_ADAPTER.md)
 - [Phase 5 Output Normalization](docs/PHASE5_OUTPUT_NORMALIZATION.md)
 - [Phase 5.5 Artifact Contract Freeze](docs/PHASE5_5_ARTIFACT_CONTRACT_FREEZE.md)
+- [Phase 6 Rubric-Based Grading Engine](docs/PHASE6_GRADING_ENGINE.md)
 - [Artifact Contracts](docs/ARTIFACT_CONTRACTS.md)
 
 Prepare a first local Codex run cell:
@@ -51,6 +52,12 @@ Validate frozen artifact contracts:
 
 ```bash
 python3 tools/validate_artifacts.py --cell runs/codex/TXN-001/seed-0 --require-canonical
+```
+
+Grade one completed run cell:
+
+```bash
+python3 tools/grade_run.py --cell runs/codex/TXN-001/seed-0 --task-json tasks_complete/TXN-001/task.json
 ```
 
 ## Quick Start
