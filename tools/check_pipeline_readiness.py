@@ -7,6 +7,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from synthbench.common import read_json
+from synthbench.trace.events import read_events, validate_trace
 
 
 REQUIRED_CELL_FILES = [
@@ -45,6 +46,12 @@ def check_cell(cell: Path) -> list[str]:
     submission = read_json(cell / "submission.json", default={}) or {}
     if submission.get("status") == "AWAITING_AGENT_OUTPUT":
         issues.append("submission still awaiting agent output")
+    try:
+        trace_issues = validate_trace(read_events(cell / "events.jsonl"))
+    except ValueError as exc:
+        trace_issues = [str(exc)]
+    for issue in trace_issues:
+        issues.append(f"trace invalid: {issue}")
     return issues
 
 

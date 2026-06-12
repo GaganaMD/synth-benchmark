@@ -10,6 +10,8 @@ from pathlib import Path
 from typing import Any
 
 from synthbench.common import write_json
+from synthbench.trace.events import append_event as append_trace_event
+from synthbench.trace.events import make_event
 
 
 DEFAULT_HARNESSES = ("codex", "codex_hermes", "synth_max")
@@ -199,8 +201,19 @@ def initialize_cell(
     (run_dir / "prompt.txt").write_text(prompt_for_task(task), encoding="utf-8")
     write_json(run_dir / "manifest.json", manifest)
     events_path = run_dir / "events.jsonl"
+    should_seed_trace = not events_path.exists() or events_path.stat().st_size == 0
     if not events_path.exists():
         events_path.write_text("", encoding="utf-8")
+    if should_seed_trace:
+        append_trace_event(
+            events_path,
+            make_event(
+                manifest,
+                "task_start",
+                prompt_path=(run_dir / "prompt.txt").as_posix(),
+                workspace_dir=(task_dir / "workspace").as_posix(),
+            ),
+        )
     write_json(
         run_dir / "state" / "state_diff.json",
         {
@@ -233,7 +246,4 @@ def initialize_cell(
 
 
 def append_event(path: Path, event: dict[str, Any]) -> None:
-    event.setdefault("ts", utc_now())
-    with path.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(event, sort_keys=True))
-        f.write("\n")
+    append_trace_event(path, event)

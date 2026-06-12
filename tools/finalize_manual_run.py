@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import shutil
 import sys
 from pathlib import Path
@@ -10,28 +9,27 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from synthbench.common import read_json, write_json
 from synthbench.run_store import hash_tree, utc_now
-
-
-def read_events(path: Path) -> list[dict]:
-    if not path.exists():
-        return []
-    events = []
-    for line in path.read_text(encoding="utf-8").splitlines():
-        if line.strip():
-            events.append(json.loads(line))
-    return events
+from synthbench.trace.events import append_event, make_task_complete_event, parse_timestamp, read_events
 
 
 def infer_trajectory(events: list[dict], final_output: str, artifacts_dir: Path) -> dict:
-    tool_calls = [event for event in events if event.get("event_type") == "tool_call"]
-    errors = [event for event in events if event.get("event_type") == "error" or event.get("success") is False]
+    tool_calls = [event for event in events if event.get("event_type") in {"tool_call", "tool_result"}]
+    errors = [event for event in events if event.get("event_type") == "exception" or event.get("success") is False]
     return {
         "tool_calls": tool_calls,
-        "read_all_inputs": any("read all" in str(event.get("action", "")).lower() for event in events),
+        "read_all_inputs": any(event.get("event_type") == "file_read" and event.get("metadata", {}).get("read_all_inputs") is True for event in events),
         "wrote_deliverable": bool(list(artifacts_dir.glob("*"))) or "results/" in final_output,
-        "recovered_from_tool_error": not errors or any("recover" in str(event.get("action", "")).lower() for event in events),
-        "self_verified": any(event.get("event_type") == "self_verify" for event in events),
+        "recovered_from_tool_error": not errors or any(event.get("recovered") is True or event.get("recovery_action") for event in errors),
+        "self_verified": any(event.get("event_type") == "verification" for event in events),
     }
+
+
+def runtime_from_events(events: list[dict], completed_at: str) -> float:
+    if not events:
+        return 0.0
+    start = parse_timestamp(events[0]["timestamp"])
+    end = parse_timestamp(completed_at)
+    return max(0.0, (end - start).total_seconds())
 
 
 def main() -> None:
@@ -42,6 +40,9 @@ def main() -> None:
     parser.add_argument("--status", default="COMPLETED", choices=["COMPLETED", "FAILED", "TIMED_OUT"])
     parser.add_argument("--control-violation", action="store_true")
     parser.add_argument("--contradiction", action="store_true")
+    parser.add_argument("--input-tokens", type=int)
+    parser.add_argument("--output-tokens", type=int)
+    parser.add_argument("--estimated-cost", type=float)
     parser.add_argument("--copy-to-task", action="store_true", help="Also overwrite task_dir/submission.json for run_suite.py.")
     args = parser.parse_args()
 
@@ -55,13 +56,27 @@ def main() -> None:
         final_output = (cell / "final_output.md").read_text(encoding="utf-8")
 
     events = read_events(cell / "events.jsonl")
+    completed_at = utc_now()
+    if not any(event.get("event_type") == "task_complete" for event in events):
+        append_event(
+            cell / "events.jsonl",
+            make_task_complete_event(
+                manifest,
+                runtime_seconds=runtime_from_events(events, completed_at),
+                step_count=len(events),
+                input_tokens=args.input_tokens,
+                output_tokens=args.output_tokens,
+                estimated_cost=args.estimated_cost,
+            ),
+        )
+        events = read_events(cell / "events.jsonl")
     artifacts_dir = cell / "artifacts"
     submission = read_json(cell / "submission.json", default={}) or {}
     submission.update(
         {
             "task_id": manifest.get("task_id") or submission.get("task_id"),
             "status": args.status,
-            "completed_at": utc_now(),
+            "completed_at": completed_at,
             "final_output": final_output,
             "deliverables": [p.relative_to(cell).as_posix() for p in sorted(artifacts_dir.rglob("*")) if p.is_file()],
             "trajectory": infer_trajectory(events, final_output, artifacts_dir),
@@ -70,6 +85,9 @@ def main() -> None:
             "artifact_hash": hash_tree(artifacts_dir),
             "control_violation": args.control_violation,
             "_no_contradiction": not args.contradiction,
+            "input_tokens": args.input_tokens,
+            "output_tokens": args.output_tokens,
+            "estimated_cost": args.estimated_cost,
         }
     )
     if args.status == "TIMED_OUT":

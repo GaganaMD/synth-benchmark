@@ -124,21 +124,25 @@ While the agent runs, append notable events:
 python3 tools/record_event.py \
   --cell runs/codex/TXN-001/seed-0 \
   --event-type tool_call \
-  --tool shell \
-  --action "read all workspace inputs" \
-  --input "tasks_complete/TXN-001/workspace" \
+  --tool-name shell \
+  --arguments '{"action":"read all workspace inputs","path":"tasks_complete/TXN-001/workspace"}' \
   --success true
 ```
 
 Use these event types:
 
-- `plan`: planning step
+- `task_start`: automatically emitted when a run cell is prepared
+- `plan_created`: planning step
+- `file_read`: file read event
+- `file_write`: file write event
 - `tool_call`: file/tool/API command
-- `observation`: important result from a tool call
-- `self_verify`: tie-out, count check, duplicate check, schema check
-- `final`: final answer emitted
-- `error`: failed call or blocked operation
-- `note`: manual operator note
+- `tool_result`: important result from a tool call
+- `state_checkpoint`: state checkpoint summary
+- `exception`: failed call or blocked operation
+- `retry`: retry event
+- `verification`: tie-out, count check, duplicate check, schema check
+- `side_effect`: posted/filed/queued side-effect event
+- `task_complete`: runtime accounting event, appended by finalization when missing
 
 Save the final Codex answer:
 
@@ -291,6 +295,7 @@ Check prepared cells:
 
 ```bash
 python3 tools/check_pipeline_readiness.py --runs-root runs
+python3 tools/validate_trace.py --cell runs/codex/TXN-001/seed-0
 ```
 
 This verifies the core run files exist and warns if `model_id` is not pinned.

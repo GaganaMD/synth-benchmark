@@ -39,23 +39,23 @@ The manifest also embeds the full `dataset` and `fixture` records so a future re
 
 ## `events.jsonl`
 
-One JSON object per line. Required event fields:
+One canonical JSON object per line. Required event fields:
 
 | Field | Meaning |
 | --- | --- |
-| `ts` | UTC timestamp |
-| `event_type` | `plan`, `tool_call`, `observation`, `self_verify`, `final`, `error`, `note` |
-| `tool` | Tool or subsystem name |
-| `action` | What happened |
-| `input` | Path, query, API endpoint, or other input |
-| `success` | Boolean |
-| `error` | Error text when applicable |
-| `metadata` | Optional structured extras |
+| `event_id` | Unique event ID |
+| `experiment_id` | Experiment registry ID |
+| `run_id` | Run registry ID |
+| `task_id` | Benchmark task ID |
+| `timestamp` | UTC timestamp |
+| `event_type` | Canonical event type |
+
+Supported event types are documented in [Phase 2 Trace Capture](PHASE2_TRACE_CAPTURE.md).
 
 Example:
 
 ```json
-{"ts":"2026-06-12T07:00:00Z","event_type":"tool_call","tool":"shell","action":"read all workspace inputs","input":"tasks_complete/TXN-001/workspace","success":true,"error":null}
+{"event_id":"evt_...","experiment_id":"exp_...","run_id":"run_...","task_id":"TXN-001","timestamp":"2026-06-12T07:00:00Z","event_type":"tool_call","tool_name":"shell","arguments":{"cmd":"ls workspace"},"success":true,"latency_ms":120}
 ```
 
 ## `submission.json`

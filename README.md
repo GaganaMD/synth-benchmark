@@ -15,6 +15,7 @@ For local Codex experiments now, and OneDrive/AWS-backed runs later, use the com
 - [Complete Benchmark Runbook](docs/COMPLETE_BENCHMARK_RUNBOOK.md)
 - [Run Store Schema](docs/RUN_STORE_SCHEMA.md)
 - [Phase 1 Infrastructure](docs/PHASE1_INFRASTRUCTURE.md)
+- [Phase 2 Trace Capture](docs/PHASE2_TRACE_CAPTURE.md)
 
 Prepare a first local Codex run cell:
 
