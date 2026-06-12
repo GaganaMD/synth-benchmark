@@ -125,3 +125,7 @@ tasks_complete/<TASK_ID>/results/
 Phase 5 writes adapter-independent normalized output here. Future graders should consume this file instead of adapter-specific raw response files.
 
 See [Phase 5 Output Normalization](PHASE5_OUTPUT_NORMALIZATION.md).
+
+## Frozen Contracts
+
+Versioned JSON schemas for `manifest.json`, `canonical_output.json`, `events.jsonl`, `S0.json`, `S1.json`, and `state_diff.json` are generated in `schemas/artifacts/` and documented in [Artifact Contracts](ARTIFACT_CONTRACTS.md).

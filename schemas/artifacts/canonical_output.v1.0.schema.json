@@ -1,0 +1,68 @@
+{
+  "$id": "https://synthbench.local/schemas/canonical-output-v1.0.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "adapter": {
+      "required": [
+        "adapter_id"
+      ],
+      "type": "object"
+    },
+    "content": {
+      "required": [
+        "structured_records",
+        "tables",
+        "reports",
+        "side_effect_summaries",
+        "exception_summaries"
+      ],
+      "type": "object"
+    },
+    "identity": {
+      "required": [
+        "run_id",
+        "task_id"
+      ],
+      "type": "object"
+    },
+    "normalized_at": {
+      "type": "string"
+    },
+    "provenance": {
+      "type": "array"
+    },
+    "raw_sources": {
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "COMPLETED",
+        "FAILED",
+        "TIMED_OUT",
+        "UNKNOWN"
+      ],
+      "type": "string"
+    },
+    "validation": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "normalized_at",
+    "identity",
+    "adapter",
+    "status",
+    "content",
+    "raw_sources",
+    "provenance",
+    "validation"
+  ],
+  "title": "Canonical Output",
+  "type": "object"
+}

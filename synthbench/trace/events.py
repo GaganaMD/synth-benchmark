@@ -44,6 +44,7 @@ def base_event(manifest: dict[str, Any], event_type: str, timestamp: str | None 
     if event_type not in EVENT_TYPES:
         raise ValueError(f"unsupported event_type: {event_type}")
     return {
+        "schema_version": "1.0",
         "event_id": event_id or new_event_id(),
         "experiment_id": manifest.get("experiment_id"),
         "run_id": manifest.get("run_id"),

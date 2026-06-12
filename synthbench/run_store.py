@@ -199,6 +199,7 @@ def initialize_cell(
     write_json(
         run_dir / "state" / "state_diff.json",
         {
+            "schema_version": "1.0",
             "status": "NOT_CAPTURED",
             "backend": manifest.get("storage_backend"),
             "s0_snapshot_path": s0_path.as_posix(),

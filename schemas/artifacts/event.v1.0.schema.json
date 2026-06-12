@@ -1,0 +1,54 @@
+{
+  "$id": "https://synthbench.local/schemas/trace-event-v1.0.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "event_id": {
+      "type": "string"
+    },
+    "event_type": {
+      "enum": [
+        "task_start",
+        "plan_created",
+        "file_read",
+        "file_write",
+        "tool_call",
+        "tool_result",
+        "state_checkpoint",
+        "exception",
+        "retry",
+        "verification",
+        "side_effect",
+        "task_complete"
+      ],
+      "type": "string"
+    },
+    "experiment_id": {
+      "type": "string"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "type": "string"
+    },
+    "task_id": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "event_id",
+    "experiment_id",
+    "run_id",
+    "task_id",
+    "timestamp",
+    "event_type"
+  ],
+  "title": "Trace Event",
+  "type": "object"
+}

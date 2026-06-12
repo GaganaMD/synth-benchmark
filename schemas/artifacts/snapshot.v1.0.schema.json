@@ -1,0 +1,54 @@
+{
+  "$id": "https://synthbench.local/schemas/state-snapshot-v1.0.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "filesystem": {
+      "required": [
+        "workspace_files",
+        "output_files"
+      ],
+      "type": "object"
+    },
+    "mock_state": {},
+    "outputs": {
+      "type": "object"
+    },
+    "outputs_hash": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "schema_version": {
+      "const": "1.0",
+      "type": "string"
+    },
+    "snapshot_id": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string"
+    },
+    "workspace": {
+      "type": "object"
+    },
+    "workspace_hash": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "snapshot_id",
+    "timestamp",
+    "workspace_hash",
+    "workspace",
+    "outputs",
+    "filesystem"
+  ],
+  "title": "State Snapshot",
+  "type": "object"
+}

@@ -1,0 +1,63 @@
+{
+  "$id": "https://synthbench.local/schemas/benchmark-manifest-v1.0.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "dataset_version": {
+      "type": "string"
+    },
+    "environment_version": {
+      "type": "string"
+    },
+    "experiment_id": {
+      "type": "string"
+    },
+    "fixture_version": {
+      "type": "string"
+    },
+    "git_commit": {
+      "type": "string"
+    },
+    "harness_id": {
+      "type": "string"
+    },
+    "model_id": {
+      "type": "string"
+    },
+    "replay": {
+      "type": "object"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "type": "string"
+    },
+    "seed": {
+      "type": "integer"
+    },
+    "task_id": {
+      "type": "string"
+    },
+    "workspace_hash": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "experiment_id",
+    "run_id",
+    "task_id",
+    "harness_id",
+    "model_id",
+    "seed",
+    "dataset_version",
+    "fixture_version",
+    "environment_version",
+    "workspace_hash",
+    "git_commit"
+  ],
+  "title": "Benchmark Manifest",
+  "type": "object"
+}

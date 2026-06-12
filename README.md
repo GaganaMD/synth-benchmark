@@ -19,6 +19,8 @@ For local Codex experiments now, and OneDrive/AWS-backed runs later, use the com
 - [Phase 3 State Diff and Side Effect Auditing](docs/PHASE3_STATE_DIFF_AUDIT.md)
 - [Phase 4A Codex Execution Adapter](docs/PHASE4A_CODEX_ADAPTER.md)
 - [Phase 5 Output Normalization](docs/PHASE5_OUTPUT_NORMALIZATION.md)
+- [Phase 5.5 Artifact Contract Freeze](docs/PHASE5_5_ARTIFACT_CONTRACT_FREEZE.md)
+- [Artifact Contracts](docs/ARTIFACT_CONTRACTS.md)
 
 Prepare a first local Codex run cell:
 
@@ -43,6 +45,12 @@ Normalize a completed run cell for future grading:
 
 ```bash
 python3 tools/normalize_output.py --cell runs/codex/TXN-001/seed-0
+```
+
+Validate frozen artifact contracts:
+
+```bash
+python3 tools/validate_artifacts.py --cell runs/codex/TXN-001/seed-0 --require-canonical
 ```
 
 ## Quick Start

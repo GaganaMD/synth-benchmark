@@ -1,0 +1,59 @@
+{
+  "$id": "https://synthbench.local/schemas/state-diff-v1.0.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "changes": {
+      "type": "array"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "s0_snapshot_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "s1_snapshot_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "schema_version": {
+      "const": "1.0",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "NOT_CAPTURED",
+        "CAPTURED",
+        "FAILED"
+      ],
+      "type": "string"
+    },
+    "summary": {
+      "type": "object"
+    },
+    "workspace_hash_after": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "workspace_hash_before": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "status",
+    "changes"
+  ],
+  "title": "State Diff",
+  "type": "object"
+}
