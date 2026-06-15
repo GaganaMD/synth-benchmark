@@ -213,7 +213,9 @@ tempCodeRunnerFile.py
 tasks/
 tasks_complete/
 tasks_defective/
-results/
+results/*
+!results/codex/
+!results/codex/**
 runs/
 immutable_inputs/
 local_fixtures/
