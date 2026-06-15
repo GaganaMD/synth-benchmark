@@ -1,0 +1,20 @@
+{
+  "event_type_counts": {
+    "exception": 1,
+    "file_read": 7,
+    "file_write": 5,
+    "task_start": 1,
+    "tool_call": 18,
+    "tool_result": 18,
+    "verification": 2
+  },
+  "expected_tool_events": 36,
+  "missing_original_tool_events": 34,
+  "original_event_count": 7,
+  "original_tool_capture_recall": 0.05555555555555555,
+  "original_tool_events": 2,
+  "reconstructed_event_count": 52,
+  "reconstructed_tool_capture_recall": 1.0,
+  "reconstructed_tool_events": 36,
+  "validation_issues": []
+}
