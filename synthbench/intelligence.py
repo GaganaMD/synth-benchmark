@@ -11,6 +11,7 @@ from synthbench.normalization.output import SCHEMA_VERSION as NORMALIZATION_VERS
 from synthbench.schemas.artifacts import CURRENT_VERSION as ARTIFACT_SCHEMA_VERSION
 from synthbench.schemas.validation import validate_document
 from synthbench.trace.events import parse_timestamp, read_events
+from synthbench.trace.reconstruction import reconstruct_cell_events, trace_fidelity_metrics
 
 
 REPORT_SCHEMA_VERSION = "1.0"
@@ -30,6 +31,9 @@ def generate_run_intelligence_report(cell: str | Path) -> dict[str, Any]:
     s0 = read_json(cell_dir / "state" / "S0.json", default={}) or {}
     s1 = read_json(cell_dir / "state" / "S1.json", default={}) or {}
     events = read_events(cell_dir / "events.jsonl")
+    reconstructed_events, reconstruction_comparison = _reconstruct_trace_fidelity(cell_dir, events)
+    trace_fidelity = trace_fidelity_metrics(events, reconstructed_events) if reconstructed_events else _empty_trace_fidelity(events)
+    trace_fidelity["reconstruction_comparison"] = reconstruction_comparison
 
     workspace_files = _workspace_files(manifest, s0)
     output_text = _output_text(submission, canonical)
@@ -87,6 +91,7 @@ def generate_run_intelligence_report(cell: str | Path) -> dict[str, Any]:
         "retrieval_effectiveness": retrieval,
         "document_importance_ranking": _document_importance_ranking(documents),
         "trace_analysis": _trace_analysis(events),
+        "trace_fidelity_analysis": trace_fidelity,
         "state_analysis": state,
         "output_analysis": output,
         "grading_analysis": grading_analysis,
@@ -101,6 +106,57 @@ def generate_run_intelligence_report(cell: str | Path) -> dict[str, Any]:
     write_json(cell_dir / "run_intelligence_report.json", report)
     (cell_dir / "run_intelligence_report.md").write_text(render_run_intelligence_markdown(report), encoding="utf-8")
     return report
+
+
+def _reconstruct_trace_fidelity(cell_dir: Path, events: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    transcript_present = (cell_dir / "raw_response.txt").exists() or (cell_dir / "final_output.md").exists()
+    if not events or not transcript_present:
+        return [], {"status": "unavailable", "reason": "events or transcript missing"}
+    output_path = cell_dir / "reconstructed_events.jsonl"
+    comparison_path = cell_dir / "reconstructed_events.comparison.json"
+    try:
+        reconstructed, comparison = reconstruct_cell_events(cell_dir, output_path=output_path, comparison_path=comparison_path)
+    except Exception as exc:
+        return [], {"status": "failed", "reason": f"{type(exc).__name__}: {exc}"}
+    comparison["status"] = "generated"
+    comparison["reconstructed_events_path"] = output_path.as_posix()
+    comparison["comparison_path"] = comparison_path.as_posix()
+    return reconstructed, comparison
+
+
+def _empty_trace_fidelity(events: list[dict[str, Any]]) -> dict[str, Any]:
+    tool_events = sum(1 for event in events if event.get("event_type") in {"tool_call", "tool_result"})
+    file_events = sum(1 for event in events if event.get("event_type") in {"file_read", "file_write"})
+    verification_events = sum(1 for event in events if event.get("event_type") == "verification")
+    return {
+        "official_metrics": {
+            "event_count": len(events),
+            "tool_events": tool_events,
+            "file_events": file_events,
+            "verification_events": verification_events,
+            "tool_capture_recall": 1.0,
+            "file_capture_recall": 1.0,
+            "verification_capture_recall": 1.0,
+            "trace_fidelity_score": 1.0,
+        },
+        "reconstructed_metrics": {
+            "event_count": 0,
+            "tool_events": 0,
+            "file_events": 0,
+            "verification_events": 0,
+            "tool_capture_recall": 0.0,
+            "file_capture_recall": 0.0,
+            "verification_capture_recall": 0.0,
+            "trace_fidelity_score": 0.0,
+            "event_type_counts": {},
+        },
+        "expected_tool_events": tool_events,
+        "expected_file_events": file_events,
+        "expected_verification_events": verification_events,
+        "missing_tool_events": 0,
+        "missing_file_events": 0,
+        "missing_verification_events": 0,
+    }
 
 
 def render_run_intelligence_markdown(report: dict[str, Any]) -> str:
@@ -205,6 +261,11 @@ def render_run_intelligence_markdown(report: dict[str, Any]) -> str:
         "",
         "## Retrieval Effectiveness",
         _kv(retrieval),
+        "",
+        "## Trace Fidelity",
+        _kv({f"official_{k}": v for k, v in report.get("trace_fidelity_analysis", {}).get("official_metrics", {}).items()}),
+        _kv({f"reconstructed_{k}": v for k, v in report.get("trace_fidelity_analysis", {}).get("reconstructed_metrics", {}).items()}),
+        _kv({k: v for k, v in report.get("trace_fidelity_analysis", {}).items() if k not in {"official_metrics", "reconstructed_metrics", "reconstruction_comparison"}}),
         "",
         "## State Analysis",
         _kv(report.get("state_analysis", {})),
@@ -944,7 +1005,7 @@ def _grading_analysis(grading: dict[str, Any]) -> dict[str, Any]:
         "graded_count": grading.get("graded_count"),
         "operator_results": results,
     }
-    for op in ("exact", "numeric", "presence", "set_match", "contradiction", "state", "tool_use", "safety"):
+    for op in ("exact", "numeric", "presence", "set_match", "contradiction", "state", "tool_use", "safety", "safety_v2"):
         values = aggregates.get(op, [])
         summary[f"{op}_score"] = _round(sum(values) / len(values)) if values else _availability(f"no {op} rubric operator")
     return summary

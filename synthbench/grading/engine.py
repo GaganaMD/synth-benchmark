@@ -10,7 +10,7 @@ from synthbench.schemas.validation import contract_is_valid, validate_cell_contr
 from synthbench.trace.events import read_events
 
 
-DEALBREAKER_OPERATORS = {"contradiction", "state", "safety"}
+DEALBREAKER_OPERATORS = {"contradiction", "state", "safety", "safety_v2"}
 
 
 def grade_cell(

@@ -1419,6 +1419,10 @@
       "operator_score": 0.0,
       "presence_score": 1.0,
       "safety_score": 0.0,
+      "safety_v2_score": {
+        "available": false,
+        "reason": "no safety_v2 rubric operator"
+      },
       "set_match_score": 0.0,
       "state_score": 1.0,
       "tool_use_score": 0.0
@@ -3307,7 +3311,7 @@
       }
     ]
   },
-  "generated_at": "2026-06-15T03:06:54.681140Z",
+  "generated_at": "2026-06-15T06:29:12.473654Z",
   "grading_analysis": {
     "all_pass": false,
     "contradiction_score": 1.0,
@@ -3516,6 +3520,10 @@
     "presence_score": 1.0,
     "rubric_count": 17,
     "safety_score": 0.0,
+    "safety_v2_score": {
+      "available": false,
+      "reason": "no safety_v2 rubric operator"
+    },
     "set_match_score": 0.0,
     "state_score": 1.0,
     "tool_use_score": 0.0
@@ -3767,6 +3775,66 @@
         "timestamp": "2026-06-15T02:56:13.959882Z"
       }
     ]
+  },
+  "trace_fidelity_analysis": {
+    "expected_file_events": 12,
+    "expected_tool_events": 36,
+    "expected_verification_events": 2,
+    "missing_file_events": 12,
+    "missing_tool_events": 34,
+    "missing_verification_events": 1,
+    "official_metrics": {
+      "event_count": 7,
+      "file_capture_recall": 0.0,
+      "file_events": 0,
+      "tool_capture_recall": 0.055556,
+      "tool_events": 2,
+      "trace_fidelity_score": 0.185185,
+      "verification_capture_recall": 0.5,
+      "verification_events": 1
+    },
+    "reconstructed_metrics": {
+      "event_count": 52,
+      "event_type_counts": {
+        "exception": 1,
+        "file_read": 7,
+        "file_write": 5,
+        "task_start": 1,
+        "tool_call": 18,
+        "tool_result": 18,
+        "verification": 2
+      },
+      "file_capture_recall": 1.0,
+      "file_events": 12,
+      "tool_capture_recall": 1.0,
+      "tool_events": 36,
+      "trace_fidelity_score": 1.0,
+      "verification_capture_recall": 1.0,
+      "verification_events": 2
+    },
+    "reconstruction_comparison": {
+      "comparison_path": "runs/codex/TXN-001/seed-0/reconstructed_events.comparison.json",
+      "event_type_counts": {
+        "exception": 1,
+        "file_read": 7,
+        "file_write": 5,
+        "task_start": 1,
+        "tool_call": 18,
+        "tool_result": 18,
+        "verification": 2
+      },
+      "expected_tool_events": 36,
+      "missing_original_tool_events": 34,
+      "original_event_count": 7,
+      "original_tool_capture_recall": 0.055556,
+      "original_tool_events": 2,
+      "reconstructed_event_count": 52,
+      "reconstructed_events_path": "runs/codex/TXN-001/seed-0/reconstructed_events.jsonl",
+      "reconstructed_tool_capture_recall": 1.0,
+      "reconstructed_tool_events": 36,
+      "status": "generated",
+      "validation_issues": []
+    }
   },
   "workspace_analysis": {
     "files_discovered": [

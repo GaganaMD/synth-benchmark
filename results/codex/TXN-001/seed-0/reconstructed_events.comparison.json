@@ -11,7 +11,7 @@
   "expected_tool_events": 36,
   "missing_original_tool_events": 34,
   "original_event_count": 7,
-  "original_tool_capture_recall": 0.05555555555555555,
+  "original_tool_capture_recall": 0.055556,
   "original_tool_events": 2,
   "reconstructed_event_count": 52,
   "reconstructed_tool_capture_recall": 1.0,

@@ -11,6 +11,7 @@ from synthbench.trace.events import (
     validate_trace,
 )
 from synthbench.trace.replay import replay_cell
+from synthbench.trace.reconstruction import reconstruct_cell_events, trace_fidelity_metrics
 from synthbench.common import write_json
 
 
@@ -81,3 +82,31 @@ def test_exception_event_schema_requires_recovery_fields():
     assert event["event_type"] == "exception"
     assert event["recovered"] is True
     assert event["recovery_action"] == "retry"
+
+
+def test_reconstruct_codex_events_from_transcript(tmp_path: Path):
+    cell = tmp_path / "runs" / "codex" / "T1" / "seed-0"
+    cell.mkdir(parents=True)
+    write_json(cell / "manifest.json", manifest())
+    append_event(cell / "events.jsonl", make_event(manifest(), "task_start", timestamp="2026-01-01T00:00:00Z"))
+    append_event(
+        cell / "events.jsonl",
+        make_tool_call_event(manifest(), tool_name="codex.subprocess", arguments={}, result=None, success=True, latency_ms=0)
+        | {"timestamp": "2026-01-01T00:00:01Z"},
+    )
+    append_event(
+        cell / "events.jsonl",
+        make_tool_call_event(manifest(), tool_name="codex.subprocess", arguments={}, result=None, success=True, latency_ms=2)
+        | {"event_type": "tool_result", "timestamp": "2026-01-01T00:00:02Z"},
+    )
+    (cell / "raw_response.txt").write_text(
+        "exec\n/bin/zsh -lc 'rg --files workspace' in /tmp/cell\n succeeded in 3ms:\nworkspace/input.txt\n",
+        encoding="utf-8",
+    )
+
+    reconstructed, comparison = reconstruct_cell_events(cell)
+    metrics = trace_fidelity_metrics(read_events(cell / "events.jsonl"), reconstructed)
+
+    assert comparison["reconstructed_tool_events"] == 2
+    assert metrics["official_metrics"]["tool_capture_recall"] == 1.0
+    assert metrics["reconstructed_metrics"]["file_events"] == 1
