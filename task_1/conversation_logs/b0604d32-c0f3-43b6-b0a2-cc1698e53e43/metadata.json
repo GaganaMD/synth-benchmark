@@ -1,0 +1,25 @@
+{
+  "source": {
+    "instance_id": "i-0025ebc4f220db762",
+    "instance_name": "synth-kayyess",
+    "region": "us-east-1",
+    "db_path": "/var/lib/kayyess-bridge/bridge.db",
+    "user_email": "synth@kayesssquare.com",
+    "user_id": "8e67cad9-54fb-4dc3-89e6-105a88f66b7f",
+    "conversation_id": "b0604d32-c0f3-43b6-b0a2-cc1698e53e43",
+    "export_method": "local reconstruction from previously read SQLite rows"
+  },
+  "conversation": {
+    "id": "b0604d32-c0f3-43b6-b0a2-cc1698e53e43",
+    "title": "Work through the full month's vendor-invoice intake across t...",
+    "created_at": "2026-06-15T04:58:51.022Z",
+    "last_message_at": "2026-06-15T08:29:40.443Z",
+    "project_id": null
+  },
+  "counts": {
+    "messages": 10,
+    "turns": 5,
+    "tool_calls": 2,
+    "findings": 0
+  }
+}
