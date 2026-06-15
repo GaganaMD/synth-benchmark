@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "task_id": "TXN-001",
+  "required_workspace_inputs": [
+    "chart_of_accounts.csv",
+    "prior_postings.csv",
+    "recurring_master.csv",
+    "reimbursement_policy.md",
+    "intake/Tally_Cherian_Enterprises_June25.xlsx",
+    "intake/Invoice_Register_A_to_AVA.xlsx"
+  ],
+  "excluded_baseline_inputs": [
+    "intake/Tally_Cherian_Enterprises_June25_v2.xlsx"
+  ],
+  "required_ground_truth": [
+    "ground_truth_extraction.csv",
+    "ground_truth_duplicates.csv",
+    "ground_truth_ledger_mapping.csv"
+  ],
+  "expected_run_outputs": [
+    "results/run_summary.csv",
+    "results/extracted_invoices.csv",
+    "results/duplicates.csv",
+    "results/exceptions.csv",
+    "results/ledger_mapping.csv"
+  ],
+  "grading_inputs": [
+    "ground_truth/ground_truth_extraction.csv",
+    "ground_truth/ground_truth_duplicates.csv",
+    "ground_truth/ground_truth_ledger_mapping.csv"
+  ],
+  "side_effect_policy": "No live Hermes or Codex execution during preparation. Future runs must use isolated traces/state_snapshots/normalized_outputs/grading_outputs/intelligence_reports under experiments/hermes_codex/TXN-001."
+}

@@ -1,0 +1,91 @@
+{
+  "schema_version": "1.0",
+  "created_at": "2026-06-15T04:57:25Z",
+  "task_id": "TXN-001",
+  "dataset_version": "v10-revised-labels",
+  "fixture_version": "hermes-codex-v10-revised-labels__TXN-001__01f2b75398112df4",
+  "fixture_root": "/Users/basethesis/Desktop/synth-benchmark/experiments/hermes_codex/TXN-001/fixture",
+  "source_audit": {
+    "approved_source_task_dir": "/Users/basethesis/Desktop/synth-benchmark/tasks_complete/TXN-001",
+    "approved_source_workspace": "/Users/basethesis/Desktop/synth-benchmark/tasks_complete/TXN-001/workspace",
+    "approved_ground_truth": "/Users/basethesis/Desktop/synth-benchmark/tasks_complete/TXN-001/ground_truth",
+    "modality": "structured_excel",
+    "optional_v2_included": false
+  },
+  "workspace_copy": "/Users/basethesis/Desktop/synth-benchmark/experiments/hermes_codex/TXN-001/fixture/workspace",
+  "workspace_hash": "01f2b75398112df4863f9dfc9154c2b554afe9ddaaf2d2721558a8ba82230f01",
+  "file_count": 6,
+  "files": [
+    {
+      "path": "chart_of_accounts.csv",
+      "size": 10076,
+      "sha256": "faa5d546dcae498f0aeaf5b0bc3a5d077f55fd1e74378e987e736e55798acf31"
+    },
+    {
+      "path": "intake/Invoice_Register_A_to_AVA.xlsx",
+      "size": 10114,
+      "sha256": "86bf4b8c6dd32b5dd4b101dabd1dfc93305b51cf65e49d94a73ac4dfc91d2d5f"
+    },
+    {
+      "path": "intake/Tally_Cherian_Enterprises_June25.xlsx",
+      "size": 8743,
+      "sha256": "7aae9f40724a0105b2ff2f74b5a1cb9a467441bd0e25b1c48b005498d9039cb9"
+    },
+    {
+      "path": "prior_postings.csv",
+      "size": 86408,
+      "sha256": "77ba69d76e9d55c3674f60c988105aa32dbf1578b631090b6f0d6b9130606084"
+    },
+    {
+      "path": "recurring_master.csv",
+      "size": 67,
+      "sha256": "8559c43c546cec0bcf70390a60e22787734fae26dcaf62b1951b7ba0cd192b4f"
+    },
+    {
+      "path": "reimbursement_policy.md",
+      "size": 262,
+      "sha256": "d5884fce36c00fe01884a861330fc11b69db0f773ad3d113e3e85484433fd2c3"
+    }
+  ],
+  "ground_truth": {
+    "root": "/Users/basethesis/Desktop/synth-benchmark/experiments/hermes_codex/TXN-001/ground_truth",
+    "exists": true,
+    "file_count": 3,
+    "files": [
+      {
+        "path": "ground_truth_duplicates.csv",
+        "size": 3350,
+        "sha256": "fda4a1ff3978c1df55643156becc214805f9f8230fa344538bd6415b52ae0930"
+      },
+      {
+        "path": "ground_truth_extraction.csv",
+        "size": 6796,
+        "sha256": "03849e9fd566342041ea14c1df0858a93ed18d4960cfd272707f9f66a7aff103"
+      },
+      {
+        "path": "ground_truth_ledger_mapping.csv",
+        "size": 3465,
+        "sha256": "1c6808ae482036461009cf9eb9f5e8e67c3e4ab499261ad3d72e360dd99c321a"
+      }
+    ],
+    "tree_sha256": "25cdb7327f434c3a33d386a637b75271514b014d4f0ba02a8244925ac8ab893a"
+  },
+  "derivation_logic": {
+    "workspace_intake": "Copied the two approved baseline structured Excel intake workbooks from tasks_complete/TXN-001/workspace/intake. Optional Tally_Cherian_Enterprises_June25_v2.xlsx intentionally excluded.",
+    "chart_of_accounts": "Copied approved chart_of_accounts.csv derived from TB April 25 March 26.xlsx as documented in fixture_metadata.json: union of trial-balance candidate ledger names and distinct purchase_ledger values.",
+    "prior_postings": "Copied approved prior_postings.csv derived from BaseThesis_Tally_Purchase_June25.xlsx.",
+    "recurring_master": "Copied schema-compliant empty placeholder from approved TXN-001 workspace.",
+    "reimbursement_policy": "Copied schema-compliant placeholder from approved TXN-001 workspace.",
+    "ground_truth_extraction": "Copied approved normalized extraction fields from the two structured Excel intake workbooks.",
+    "ground_truth_duplicates": "Copied approved duplicate labels; duplicate if invoice_number appears in prior_postings.csv or repeats within intake.",
+    "ground_truth_ledger_mapping": "Copied approved ledger mapping using purchase_ledger from intake workbook as expected_ledger."
+  },
+  "counts": {
+    "invoice_count": 68,
+    "vendor_count": 17,
+    "duplicate_count": 52,
+    "ledger_count": 1,
+    "coa_ledger_count": 110,
+    "prior_posting_rows": 1584
+  }
+}

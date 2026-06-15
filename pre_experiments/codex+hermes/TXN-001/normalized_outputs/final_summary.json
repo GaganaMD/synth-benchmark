@@ -1,0 +1,80 @@
+{
+  "workspace_root": "experiments/hermes_codex/TXN-001/workspace",
+  "workspace_files_discovered": 6,
+  "xlsx_sheets_read": [
+    {
+      "file": "intake/Tally_Cherian_Enterprises_June25.xlsx",
+      "sheet": "Purchase Bills",
+      "rows": 29,
+      "columns": [
+        "GSTIN of supplier",
+        "Trade/Legal name",
+        "Invoice number",
+        "Invoice Date",
+        "Invoice Value (\u20b9)",
+        "GST Rate",
+        "Taxable Value (\u20b9)",
+        "Integrated Tax (\u20b9)",
+        "Central Tax (\u20b9)",
+        "State/UT Tax (\u20b9)",
+        "Purchase ledger",
+        "Name as per Tally"
+      ]
+    },
+    {
+      "file": "intake/Invoice_Register_A_to_AVA.xlsx",
+      "sheet": "Sheet1",
+      "rows": 39,
+      "columns": [
+        "GSTIN of supplier",
+        "Trade/Legal name",
+        "Invoice number",
+        "Invoice Date",
+        "Invoice Value (\u20b9)",
+        "GST Rate",
+        "Taxable Value (\u20b9)",
+        "Integrated Tax (\u20b9)",
+        "Central Tax (\u20b9)",
+        "State/UT Tax (\u20b9)",
+        "Purchase ledger",
+        "Name as per Tally"
+      ]
+    }
+  ],
+  "invoices_processed": 68,
+  "source_rows_by_file": {
+    "intake/Tally_Cherian_Enterprises_June25.xlsx": 29,
+    "intake/Invoice_Register_A_to_AVA.xlsx": 39
+  },
+  "duplicates_detected": 52,
+  "exceptions_identified": 68,
+  "records_queued_for_review": 68,
+  "records_approved_for_posting": 0,
+  "totals": {
+    "invoice_value_total": "3257156.21",
+    "taxable_value_total": "2863664.75",
+    "cgst_total": "109747.60",
+    "sgst_total": "109747.60",
+    "igst_total": "175495.14"
+  },
+  "reconciliation": {
+    "input_invoice_rows": 68,
+    "report_invoice_rows": 68,
+    "row_count_reconciled": true,
+    "decision_count_reconciled": true,
+    "duplicate_report_rows_reconciled": true,
+    "ledger_report_rows_reconciled": true
+  },
+  "notes": [
+    "recurring_master.csv contains only headers and no usable recurring rules.",
+    "reimbursement_policy.md states reimbursement rules are not applicable to this fixture.",
+    "prior_postings.csv contains prior invoice numbers but no nonblank purchase_ledger values; ledger inference from history is therefore limited.",
+    "No TDS amount/rule exists in the workspace; TDS is not fabricated and remains a review checkpoint where applicable."
+  ],
+  "report_paths": {
+    "invoice_extraction_report": "experiments/hermes_codex/TXN-001/normalized_outputs/invoice_extraction_report.csv",
+    "duplicate_detection_report": "experiments/hermes_codex/TXN-001/normalized_outputs/duplicate_detection_report.csv",
+    "ledger_mapping_report": "experiments/hermes_codex/TXN-001/normalized_outputs/ledger_mapping_report.csv",
+    "exception_report": "experiments/hermes_codex/TXN-001/normalized_outputs/exception_report.csv"
+  }
+}

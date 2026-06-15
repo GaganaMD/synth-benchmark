@@ -1,0 +1,6 @@
+Exception ID,Source File,Exception Type,Severity,Description,Action
+EXC-MISSING-intake,intake,Missing mandatory source,Blocking,Expected by user prompt; not present in current working directory,Queue run for review; request source assets; no posting performed
+EXC-MISSING-chart_of_accounts.csv,chart_of_accounts.csv,Missing mandatory source,Blocking,Expected by user prompt; not present in current working directory,Queue run for review; request source assets; no posting performed
+EXC-MISSING-recurring_master.csv,recurring_master.csv,Missing mandatory source,Blocking,Expected by user prompt; not present in current working directory,Queue run for review; request source assets; no posting performed
+EXC-MISSING-reimbursement_policy.md,reimbursement_policy.md,Missing mandatory source,Blocking,Expected by user prompt; not present in current working directory,Queue run for review; request source assets; no posting performed
+EXC-MISSING-prior_postings.csv,prior_postings.csv,Missing mandatory source,Blocking,Expected by user prompt; not present in current working directory,Queue run for review; request source assets; no posting performed

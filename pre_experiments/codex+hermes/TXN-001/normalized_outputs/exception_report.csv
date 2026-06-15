@@ -1,0 +1,69 @@
+invoice_number,vendor_name,gstin,source_file,source_row_number,missing_fields,conflicts,ambiguities,unresolved_items,decision
+AMD2-1171,CHERIAN ENTERPRISES,24AANPR8451M1ZZ,intake/Tally_Cherian_Enterprises_June25.xlsx,2,,,,queued due to duplicate or low confidence,Queue For Review
+AMD2-3862,CHERIAN ENTERPRISES,24AANPR8451M1ZZ,intake/Tally_Cherian_Enterprises_June25.xlsx,3,,,,queued due to duplicate or low confidence,Queue For Review
+BLR7-10525,CHERIAN ENTERPRISES,29AANPR8451M1ZP,intake/Tally_Cherian_Enterprises_June25.xlsx,4,,,,queued due to duplicate or low confidence,Queue For Review
+BLR7-8177,CHERIAN ENTERPRISES,29ADCPT8466G1ZY,intake/Tally_Cherian_Enterprises_June25.xlsx,5,,invoice_value 4301.46 differs from taxable+tax components 5798.46,,conflicts: invoice_value 4301.46 differs from taxable+tax components 5798.46,Queue For Review
+BLR8-14563,CHERIAN ENTERPRISES,29AANPR8451M1ZP,intake/Tally_Cherian_Enterprises_June25.xlsx,6,,,,queued due to duplicate or low confidence,Queue For Review
+BLR8-390,CHERIAN ENTERPRISES,29AANPR8451M1ZP,intake/Tally_Cherian_Enterprises_June25.xlsx,7,,,,queued due to duplicate or low confidence,Queue For Review
+BLR8-391,CHERIAN ENTERPRISES,29AANPR8451M1ZP,intake/Tally_Cherian_Enterprises_June25.xlsx,8,,,,queued due to duplicate or low confidence,Queue For Review
+BLR8-6425,CHERIAN ENTERPRISES,29AANPR8451M1ZP,intake/Tally_Cherian_Enterprises_June25.xlsx,9,,,,queued due to duplicate or low confidence,Queue For Review
+BOM5-13884,CHERIAN ENTERPRISES,27AANPR8451M1ZT,intake/Tally_Cherian_Enterprises_June25.xlsx,10,,,,queued due to duplicate or low confidence,Queue For Review
+BOM5-5782,CHERIAN ENTERPRISES,27AANPR8451M1ZT,intake/Tally_Cherian_Enterprises_June25.xlsx,11,,,,queued due to duplicate or low confidence,Queue For Review
+BOM7-8226,CHERIAN ENTERPRISES,27AANPR8451M1ZT,intake/Tally_Cherian_Enterprises_June25.xlsx,12,,,,queued due to duplicate or low confidence,Queue For Review
+CCX1-1638,CHERIAN ENTERPRISES,19AANPR8451M1ZQ,intake/Tally_Cherian_Enterprises_June25.xlsx,13,,,,queued due to duplicate or low confidence,Queue For Review
+CJB1-10077,CHERIAN ENTERPRISES,33AANPR8451M1Z0,intake/Tally_Cherian_Enterprises_June25.xlsx,14,,,,queued due to duplicate or low confidence,Queue For Review
+CJB1-2466,CHERIAN ENTERPRISES,33AANPR8451M1Z0,intake/Tally_Cherian_Enterprises_June25.xlsx,15,,,,queued due to duplicate or low confidence,Queue For Review
+CJB1-3280,CHERIAN ENTERPRISES,33AANPR8451M1Z0,intake/Tally_Cherian_Enterprises_June25.xlsx,16,,,,queued due to duplicate or low confidence,Queue For Review
+CJB1-8340,CHERIAN ENTERPRISES,33AANPR8451M1Z0,intake/Tally_Cherian_Enterprises_June25.xlsx,17,,,,queued due to duplicate or low confidence,Queue For Review
+DED4-3178,CHERIAN ENTERPRISES,06AANPR8451M1ZX,intake/Tally_Cherian_Enterprises_June25.xlsx,18,,,,queued due to duplicate or low confidence,Queue For Review
+DED4-3179,CHERIAN ENTERPRISES,06AANPR8451M1ZX,intake/Tally_Cherian_Enterprises_June25.xlsx,19,,,,queued due to duplicate or low confidence,Queue For Review
+GAX1-506,CHERIAN ENTERPRISES,18AANPR8451M1ZS,intake/Tally_Cherian_Enterprises_June25.xlsx,20,,,,queued due to duplicate or low confidence,Queue For Review
+GAX1-507,CHERIAN ENTERPRISES,18AANPR8451M1ZS,intake/Tally_Cherian_Enterprises_June25.xlsx,21,,,,queued due to duplicate or low confidence,Queue For Review
+HYD8-1937,CHERIAN ENTERPRISES,36AANPR8451M1ZU,intake/Tally_Cherian_Enterprises_June25.xlsx,22,,,,queued due to duplicate or low confidence,Queue For Review
+HYD8-441,CHERIAN ENTERPRISES,36AANPR8451M1ZU,intake/Tally_Cherian_Enterprises_June25.xlsx,23,,,,queued due to duplicate or low confidence,Queue For Review
+HYD8-442,CHERIAN ENTERPRISES,36AANPR8451M1ZU,intake/Tally_Cherian_Enterprises_June25.xlsx,24,,,,queued due to duplicate or low confidence,Queue For Review
+LKO1-1270,CHERIAN ENTERPRISES,09AANPR8451M1ZR,intake/Tally_Cherian_Enterprises_June25.xlsx,25,,,,queued due to duplicate or low confidence,Queue For Review
+MAA4-7121,CHERIAN ENTERPRISES,33AANPR8451M1Z0,intake/Tally_Cherian_Enterprises_June25.xlsx,26,,,,queued due to duplicate or low confidence,Queue For Review
+MAA4-7123,CHERIAN ENTERPRISES,33AANPR8451M1Z0,intake/Tally_Cherian_Enterprises_June25.xlsx,27,,,,queued due to duplicate or low confidence,Queue For Review
+MAA4-8550,CHERIAN ENTERPRISES,33AANPR8451M1Z0,intake/Tally_Cherian_Enterprises_June25.xlsx,28,,,,queued due to duplicate or low confidence,Queue For Review
+TWCX-1454,CHERIAN ENTERPRISES,27AANPR8451M1ZT,intake/Tally_Cherian_Enterprises_June25.xlsx,29,,,,queued due to duplicate or low confidence,Queue For Review
+TWCX-5755,CHERIAN ENTERPRISES,27AANPR8451M1ZT,intake/Tally_Cherian_Enterprises_June25.xlsx,30,,,,queued due to duplicate or low confidence,Queue For Review
+H1253,A & A LED LIGHTING CORPORATION,32AODPR5380K1ZP,intake/Invoice_Register_A_to_AVA.xlsx,2,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+H0468,A & A LED LIGHTING CORPORATION,32AODPR5380K1ZP,intake/Invoice_Register_A_to_AVA.xlsx,3,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+ARKB2B-04,ARKIDAM DEVELOPERS PRIVATE LIMITED,32ABACA8568K1ZF,intake/Invoice_Register_A_to_AVA.xlsx,4,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+ARKB2B-09,ARKIDAM DEVELOPERS PRIVATE LIMITED,32ABACA8568K1ZF,intake/Invoice_Register_A_to_AVA.xlsx,5,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+FM/0017/25-26,ABAD PROPERTY MANAGEMENT SERVICES PVT LTD,32AAHCA1323N1ZX,intake/Invoice_Register_A_to_AVA.xlsx,6,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+FM/0125/25-26,ABAD PROPERTY MANAGEMENT SERVICES PVT LTD,32AAHCA1323N1ZX,intake/Invoice_Register_A_to_AVA.xlsx,7,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+FM/0244/25-26,ABAD PROPERTY MANAGEMENT SERVICES PVT LTD,32AAHCA1323N1ZX,intake/Invoice_Register_A_to_AVA.xlsx,8,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+FM/0361/25-26,ABAD PROPERTY MANAGEMENT SERVICES PVT LTD,32AAHCA1323N1ZX,intake/Invoice_Register_A_to_AVA.xlsx,9,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+FM/0479/25-26,ABAD PROPERTY MANAGEMENT SERVICES PVT LTD,32AAHCA1323N1ZX,intake/Invoice_Register_A_to_AVA.xlsx,10,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+FM/0606/25-26,ABAD PROPERTY MANAGEMENT SERVICES PVT LTD,32AAHCA1323N1ZX,intake/Invoice_Register_A_to_AVA.xlsx,11,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+17991,Actartly Technology Private Limited,29AAACA9394N1ZG,intake/Invoice_Register_A_to_AVA.xlsx,12,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+20188,Actartly Technology Private Limited,29AAQCA8394N1ZG,intake/Invoice_Register_A_to_AVA.xlsx,13,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+21770,Actartly Technology Private Limited,29AAQCA8394N1ZG,intake/Invoice_Register_A_to_AVA.xlsx,14,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+24021,Actartly Technology Private Limited,29AAQCA8394N1ZG,intake/Invoice_Register_A_to_AVA.xlsx,15,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+25802,Actartly Technology Private Limited,29AAQCA8394N1ZG,intake/Invoice_Register_A_to_AVA.xlsx,16,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+ACT/25-26/05/653,Advantage Club Technologies Private Limited,06AAVCA3637K1Z7,intake/Invoice_Register_A_to_AVA.xlsx,17,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+IN-719,AERIAL INFOTECH,07ACJPL6898G1ZZ,intake/Invoice_Register_A_to_AVA.xlsx,18,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+31,AHAANA KRISHNA,32ELAPK5261E1ZI,intake/Invoice_Register_A_to_AVA.xlsx,19,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+46,AHAANA KRISHNA,32ELAPK5261E1ZI,intake/Invoice_Register_A_to_AVA.xlsx,20,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+IN-1717,Akaay Enterprises,09BVEPG3244C1ZZ,intake/Invoice_Register_A_to_AVA.xlsx,21,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+XHRC-122091,ALPINO HEALTH FOODS PRIVATE LIMITED,24AASCA1881A1ZV,intake/Invoice_Register_A_to_AVA.xlsx,22,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+XHRC-153772,ALPINO HEALTH FOODS PRIVATE LIMITED,24AASCA1881A1ZV,intake/Invoice_Register_A_to_AVA.xlsx,23,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+AC/2025-2026/316,Analytics Cloud,09EQIPS0626E1ZQ,intake/Invoice_Register_A_to_AVA.xlsx,24,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+AC/2025-2026/383,Analytics Cloud,09EQIPS0626E1ZQ,intake/Invoice_Register_A_to_AVA.xlsx,25,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+AC/2025-2026/444,Analytics Cloud,09EQIPS0626E1ZQ,intake/Invoice_Register_A_to_AVA.xlsx,26,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+AC/2025-2026/516,Analytics Cloud,09EQIPS0626E1ZQ,intake/Invoice_Register_A_to_AVA.xlsx,27,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+LIN/28/25-26,Amyka Healthcare Private Limited (Anvka),07AAVCA1150A1ZH,intake/Invoice_Register_A_to_AVA.xlsx,28,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+CJB1-2115,ARAVIND BROADVIEW CONSTRUCTIONS AND HOLDINGS PVT LTD,33AAAFA1203H1ZE,intake/Invoice_Register_A_to_AVA.xlsx,29,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+AC/197,ARIHANT CREATIONS,27BPTPM0364J1ZE,intake/Invoice_Register_A_to_AVA.xlsx,30,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+AC/216,ARIHANT CREATIONS,27BPTPM0364J1ZE,intake/Invoice_Register_A_to_AVA.xlsx,31,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+AC/222,ARIHANT CREATIONS,27BPTPM0364J1ZE,intake/Invoice_Register_A_to_AVA.xlsx,32,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+3212500001380880,Asianet Satellite Communications Limited,32AAECA5548E1Z0,intake/Invoice_Register_A_to_AVA.xlsx,33,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+3212500002379690,Asianet Satellite Communications Limited,32AAECA5548E1Z0,intake/Invoice_Register_A_to_AVA.xlsx,34,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+3212500002803520,Asianet Satellite Communications Limited,32AAECA5548E1Z0,intake/Invoice_Register_A_to_AVA.xlsx,35,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+3212500003145990,Asianet Satellite Communications Limited,32AAECA5548E1Z0,intake/Invoice_Register_A_to_AVA.xlsx,36,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+3212500003445710,Asianet Satellite Communications Limited,32AAECA5548E1Z0,intake/Invoice_Register_A_to_AVA.xlsx,37,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+3212500003746450,Asianet Satellite Communications Limited,32AAECA5548E1Z0,intake/Invoice_Register_A_to_AVA.xlsx,38,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+HYD8-8218,Radiant Consumer Appliances Pvt Ltd,36AAECR8516M1ZW,intake/Invoice_Register_A_to_AVA.xlsx,39,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review
+HYD8-2174,AVA International Private Limited,36AATCA0039M1ZC,intake/Invoice_Register_A_to_AVA.xlsx,40,Purchase Ledger,,ledger mapping,missing fields: Purchase Ledger; ambiguous ledger mapping,Queue For Review

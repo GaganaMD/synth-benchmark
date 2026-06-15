@@ -1,0 +1,6 @@
+path,exists,type,status,notes
+intake,False,missing,MISSING_MANDATORY_SOURCE,Expected by user prompt; not present in current working directory
+chart_of_accounts.csv,False,missing,MISSING_MANDATORY_SOURCE,Expected by user prompt; not present in current working directory
+recurring_master.csv,False,missing,MISSING_MANDATORY_SOURCE,Expected by user prompt; not present in current working directory
+reimbursement_policy.md,False,missing,MISSING_MANDATORY_SOURCE,Expected by user prompt; not present in current working directory
+prior_postings.csv,False,missing,MISSING_MANDATORY_SOURCE,Expected by user prompt; not present in current working directory

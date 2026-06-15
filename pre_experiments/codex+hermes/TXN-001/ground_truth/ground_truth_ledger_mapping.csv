@@ -1,0 +1,69 @@
+invoice_number,expected_ledger,mapping_source
+AMD2-1171,Manufacturing vendor,intake_purchase_ledger_field
+AMD2-3862,Manufacturing vendor,intake_purchase_ledger_field
+BLR7-10525,Manufacturing vendor,intake_purchase_ledger_field
+BLR7-8177,Manufacturing vendor,intake_purchase_ledger_field
+BLR8-14563,Manufacturing vendor,intake_purchase_ledger_field
+BLR8-390,Manufacturing vendor,intake_purchase_ledger_field
+BLR8-391,Manufacturing vendor,intake_purchase_ledger_field
+BLR8-6425,Manufacturing vendor,intake_purchase_ledger_field
+BOM5-13884,Manufacturing vendor,intake_purchase_ledger_field
+BOM5-5782,Manufacturing vendor,intake_purchase_ledger_field
+BOM7-8226,Manufacturing vendor,intake_purchase_ledger_field
+CCX1-1638,Manufacturing vendor,intake_purchase_ledger_field
+CJB1-10077,Manufacturing vendor,intake_purchase_ledger_field
+CJB1-2466,Manufacturing vendor,intake_purchase_ledger_field
+CJB1-3280,Manufacturing vendor,intake_purchase_ledger_field
+CJB1-8340,Manufacturing vendor,intake_purchase_ledger_field
+DED4-3178,Manufacturing vendor,intake_purchase_ledger_field
+DED4-3179,Manufacturing vendor,intake_purchase_ledger_field
+GAX1-506,Manufacturing vendor,intake_purchase_ledger_field
+GAX1-507,Manufacturing vendor,intake_purchase_ledger_field
+HYD8-1937,Manufacturing vendor,intake_purchase_ledger_field
+HYD8-441,Manufacturing vendor,intake_purchase_ledger_field
+HYD8-442,Manufacturing vendor,intake_purchase_ledger_field
+LKO1-1270,Manufacturing vendor,intake_purchase_ledger_field
+MAA4-7121,Manufacturing vendor,intake_purchase_ledger_field
+MAA4-7123,Manufacturing vendor,intake_purchase_ledger_field
+MAA4-8550,Manufacturing vendor,intake_purchase_ledger_field
+TWCX-1454,Manufacturing vendor,intake_purchase_ledger_field
+TWCX-5755,Manufacturing vendor,intake_purchase_ledger_field
+H1253,,intake_purchase_ledger_field
+H0468,,intake_purchase_ledger_field
+ARKB2B-04,,intake_purchase_ledger_field
+ARKB2B-09,,intake_purchase_ledger_field
+FM/0017/25-26,,intake_purchase_ledger_field
+FM/0125/25-26,,intake_purchase_ledger_field
+FM/0244/25-26,,intake_purchase_ledger_field
+FM/0361/25-26,,intake_purchase_ledger_field
+FM/0479/25-26,,intake_purchase_ledger_field
+FM/0606/25-26,,intake_purchase_ledger_field
+17991,,intake_purchase_ledger_field
+20188,,intake_purchase_ledger_field
+21770,,intake_purchase_ledger_field
+24021,,intake_purchase_ledger_field
+25802,,intake_purchase_ledger_field
+ACT/25-26/05/653,,intake_purchase_ledger_field
+IN-719,,intake_purchase_ledger_field
+31,,intake_purchase_ledger_field
+46,,intake_purchase_ledger_field
+IN-1717,,intake_purchase_ledger_field
+XHRC-122091,,intake_purchase_ledger_field
+XHRC-153772,,intake_purchase_ledger_field
+AC/2025-2026/316,,intake_purchase_ledger_field
+AC/2025-2026/383,,intake_purchase_ledger_field
+AC/2025-2026/444,,intake_purchase_ledger_field
+AC/2025-2026/516,,intake_purchase_ledger_field
+LIN/28/25-26,,intake_purchase_ledger_field
+CJB1-2115,,intake_purchase_ledger_field
+AC/197,,intake_purchase_ledger_field
+AC/216,,intake_purchase_ledger_field
+AC/222,,intake_purchase_ledger_field
+3212500001380880,,intake_purchase_ledger_field
+3212500002379690,,intake_purchase_ledger_field
+3212500002803520,,intake_purchase_ledger_field
+3212500003145990,,intake_purchase_ledger_field
+3212500003445710,,intake_purchase_ledger_field
+3212500003746450,,intake_purchase_ledger_field
+HYD8-8218,,intake_purchase_ledger_field
+HYD8-2174,,intake_purchase_ledger_field

@@ -1,0 +1,24 @@
+{
+  "run_timestamp": "2026-06-14T19:41:23",
+  "working_directory": "/Users/basethesis/Desktop/synth-benchmark",
+  "expected_sources": 5,
+  "available_expected_sources": 0,
+  "missing_expected_sources": 5,
+  "in_scope_invoice_documents_found": 0,
+  "invoice_records_extracted": 0,
+  "auto_posted_count": 0,
+  "queued_for_review_count": 0,
+  "duplicate_count": 0,
+  "exception_count": 5,
+  "total_taxable_value": "0.00",
+  "total_cgst": "0.00",
+  "total_sgst": "0.00",
+  "total_igst": "0.00",
+  "control_status": "BLOCKED_MISSING_INPUTS_NO_POSTINGS",
+  "internal_consistency": {
+    "documents_found_equals_records_processed": true,
+    "auto_posted_plus_review_not_greater_than_extracted": true,
+    "no_duplicate_postings_created": true,
+    "no_silent_skips": true
+  }
+}
