@@ -1,0 +1,11 @@
+{
+  "documents_found": 68,
+  "invoices_processed": 18,
+  "duplicates_skipped": 49,
+  "exceptions_logged": 1,
+  "input_workspace": "/Users/basethesis/Desktop/synth-benchmark/tasks_complete/TXN-001/workspace",
+  "results_workspace": "/Users/basethesis/Desktop/synth-benchmark/runs/codex/TXN-001/seed-0/results",
+  "notes": [
+    "HSN/SAC was not present as a column in the structured intake workbooks; output is left blank where unavailable."
+  ]
+}

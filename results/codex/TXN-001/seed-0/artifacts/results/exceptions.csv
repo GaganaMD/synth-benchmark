@@ -1,0 +1,2 @@
+Date,Vendor,GSTIN,Taxable,CGST,SGST,IGST,HSN/SAC,Invoice No,Invoice Value,GST Rate,Purchase ledger,Name as per Tally,source_file,source_sheet,source_row,exception_reason
+2026-07-01,Actartly Technology Private Limited,29AAQCA8394N1ZG,48019.91,0.00,0.00,8643.58,,24021,56663.49,0.18,,,Invoice_Register_A_to_AVA.xlsx,Sheet1,15,invoice date 2026-07-01 is after run date 2026-06-15
